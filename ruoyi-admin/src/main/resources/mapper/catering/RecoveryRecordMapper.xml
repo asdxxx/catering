@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.catering.mapper.RecoveryRecordMapper">
+
+    <resultMap type="RecoveryRecord" id="RecoveryRecordResult">
+        <result property="id" column="id"/>
+        <result property="restaurantId" column="restaurant_id"/>
+        <result property="location" column="location"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="userId" column="user_id"/>
+        <result property="carNo" column="car_no"/>
+        <result property="garbageId" column="garbage_id"/>
+        <result property="weight" column="weight"/>
+        <result property="img" column="img"/>
+        <result property="recoveryDate" column="recovery_date"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectRecoveryRecordVo">
+        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img, recovery_date,
+        status, create_by,
+        create_time, update_by, update_time, remark from cy_recovery_record
+    </sql>
+
+    <select id="selectRecoveryRecordList" parameterType="RecoveryRecord" resultMap="RecoveryRecordResult">
+        <!--<include refid="selectRecoveryRecordVo"/>-->
+        select rr.id, rr.restaurant_id, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no, rr.garbage_id, rr.weight, rr.img,
+        rr.recovery_date,
+        rr.status, rr.create_by, rr.create_time, rr.update_by, rr.update_time, rr.remark
+        from cy_recovery_record rr
+        <!--left join sys_user u on rr.user_id = u.user_id-->
+        <!--left join sys_dept d on u.dept_id = d.dept_id-->
+        left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
+        left join sys_dept d on r.dept_id = d.dept_id
+        left join sys_user u on rr.user_id = u.user_id
+        where 1=1
+        <if test="restaurantId != null ">and rr.restaurant_id = #{restaurantId}</if>
+        <if test="userId != null ">and rr.user_id = #{userId}</if>
+        <if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>
+        <if test="status != null ">and rr.status = #{status}</if>
+        <if test="params.restaurantName != null and params.restaurantName != ''">
+            and r.name like concat('%', #{params.restaurantName}, '%')
+        </if>
+        <if test="params.userName != null and params.userName != ''">
+            and u.user_name = #{params.userName}
+        </if>
+        <if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">
+            and rr.recovery_date >= #{params.beginRecoveryDate}
+        </if>
+        <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
+            and #{params.endRecoveryDate} >= rr.recovery_date
+        </if>
+        <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != '' and params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
+        <!--and rr.recovery_date between #{params.beginRecoveryDate} and #{params.endRecoveryDate}-->
+        <!--</if>-->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectRecoveryRecordById" parameterType="Long" resultMap="RecoveryRecordResult">
+        <include refid="selectRecoveryRecordVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertRecoveryRecord" parameterType="RecoveryRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into cy_recovery_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="restaurantId != null">restaurant_id,</if>
+            <if test="location != null">location,</if>
+            <if test="longitude != null">longitude,</if>
+            <if test="latitude != null">latitude,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="carNo != null">car_no,</if>
+            <if test="garbageId != null">garbage_id,</if>
+            <if test="weight != null">weight,</if>
+            <if test="img != null">img,</if>
+            <if test="recoveryDate != null">recovery_date,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="restaurantId != null">#{restaurantId},</if>
+            <if test="location != null">#{location},</if>
+            <if test="longitude != null">#{longitude},</if>
+            <if test="latitude != null">#{latitude},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="carNo != null">#{carNo},</if>
+            <if test="garbageId != null">#{garbageId},</if>
+            <if test="weight != null">#{weight},</if>
+            <if test="img != null">#{img},</if>
+            <if test="recoveryDate != null">#{recoveryDate},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRecoveryRecord" parameterType="RecoveryRecord">
+        update cy_recovery_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="restaurantId != null">restaurant_id = #{restaurantId},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="carNo != null">car_no = #{carNo},</if>
+            <if test="garbageId != null">garbage_id = #{garbageId},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="img != null">img = #{img},</if>
+            <if test="recoveryDate != null">recovery_date = #{recoveryDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRecoveryRecordById" parameterType="Long">
+        delete from cy_recovery_record where id = #{id}
+    </delete>
+
+    <delete id="deleteRecoveryRecordByIds" parameterType="String">
+        delete from cy_recovery_record where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectLastRecoveryRecord" parameterType="Long" resultMap="RecoveryRecordResult">
+        <include refid="selectRecoveryRecordVo"/>
+        where restaurant_id = #{restaurantId}
+    </select>
+</mapper>

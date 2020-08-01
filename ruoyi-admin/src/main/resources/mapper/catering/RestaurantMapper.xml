@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.catering.mapper.RestaurantMapper">
+
+    <resultMap type="Restaurant" id="RestaurantResult">
+        <result property="restaurantId" column="restaurant_id"/>
+        <result property="restaurantNo" column="restaurant_no"/>
+        <result property="name" column="name"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="legalPerson" column="legal_person"/>
+        <result property="tel" column="tel"/>
+        <result property="premises" column="premises"/>
+        <result property="signDate" column="sign_date"/>
+        <result property="expireDate" column="expire_date"/>
+        <result property="size" column="size"/>
+        <result property="openid" column="openid"/>
+        <result property="shortName" column="short_name"/>
+        <result property="diningTypeId" column="dining_type_id"/>
+        <!--<result property="regionId"    column="region_id"    />-->
+        <result property="area" column="area"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="hasOilWaterSeparator" column="has_oil_water_separator"/>
+        <result property="hasFumeCleaner" column="has_fume_cleaner"/>
+        <result property="hasDischargePermit" column="has_discharge_permit"/>
+        <result property="dischargeNo" column="discharge_no"/>
+        <result property="validityDay" column="validity_day"/>
+        <result property="closedDay" column="closed_day"/>
+        <result property="gasTypeId" column="gas_type_id"/>
+        <result property="haskwoRecoveryAgreement" column="haskwo_recovery_agreement"/>
+        <result property="storePhoto" column="store_photo"/>
+        <result property="dischargePhoto" column="discharge_photo"/>
+        <result property="separatorPhoto" column="separator_photo"/>
+        <result property="cleanerPhoto" column="cleaner_photo"/>
+        <result property="oilPhoto" column="oil_photo"/>
+        <result property="idPhoto" column="id_photo"/>
+        <result property="qrCode" column="qr_code"/>
+        <result property="haskwosms" column="haskwosms"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectRestaurantVo">
+        select restaurant_id, restaurant_no, name, dept_id, legal_person, tel, premises, sign_date, expire_date, size,
+        openid, short_name, dining_type_id, area,
+        longitude, latitude, has_oil_water_separator, has_fume_cleaner, has_discharge_permit, discharge_no,
+        validity_day, closed_day, gas_type_id, haskwo_recovery_agreement, store_photo, discharge_photo, separator_photo,
+        cleaner_photo, oil_photo, id_photo, qr_code, haskwosms, status, create_by, create_time, update_by, update_time,
+        remark from cy_restaurant
+    </sql>
+
+    <select id="selectRestaurantList" parameterType="Restaurant" resultMap="RestaurantResult">
+        <!--<include refid="selectRestaurantVo"/>-->
+        select restaurant_id, restaurant_no, name, r.dept_id, legal_person, tel, premises, sign_date, expire_date, size,
+        openid, short_name, dining_type_id, area,
+        longitude, latitude, has_oil_water_separator, has_fume_cleaner, has_discharge_permit, discharge_no,
+        validity_day, closed_day, gas_type_id, haskwo_recovery_agreement, store_photo, discharge_photo, separator_photo,
+        cleaner_photo, oil_photo, id_photo, qr_code, haskwosms, r.status, r.create_by, r.create_time, r.update_by,
+        r.update_time,
+        r.remark from cy_restaurant r
+        left join sys_dept d on r.dept_id = d.dept_id
+        where 1=1
+        <if test="restaurantNo != null  and restaurantNo != ''">and restaurant_no = #{restaurantNo}</if>
+        <if test="size != null  and size != ''">and size = #{size}</if>
+        <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+        <if test="legalPerson != null  and legalPerson != ''">and legal_person = #{legalPerson}</if>
+        <if test="tel != null  and tel != ''">and tel = #{tel}</if>
+        <if test="openid != null  and openid != ''">and openid = #{openid}</if>
+        <if test="diningTypeId != null ">and dining_type_id = #{diningTypeId}</if>
+        <!--<if test="regionId != null "> and region_id = #{regionId}</if>-->
+        <if test="hasOilWaterSeparator != null ">and has_oil_water_separator = #{hasOilWaterSeparator}</if>
+        <if test="hasFumeCleaner != null ">and has_fume_cleaner = #{hasFumeCleaner}</if>
+        <if test="hasDischargePermit != null ">and has_discharge_permit = #{hasDischargePermit}</if>
+        <if test="gasTypeId != null ">and gas_type_id = #{gasTypeId}</if>
+        <if test="haskwoRecoveryAgreement != null ">and haskwo_recovery_agreement = #{haskwoRecoveryAgreement}</if>
+        <if test="haskwosms != null ">and haskwosms = #{haskwosms}</if>
+        <if test="status != null ">and r.status = #{status}</if>
+        <if test="deptId != null and deptId != 0">
+            AND (r.dept_id = #{deptId} OR r.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET
+            (#{deptId},ancestors) ))
+        </if>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectRestaurantById" parameterType="Long" resultMap="RestaurantResult">
+        <include refid="selectRestaurantVo"/>
+        where restaurant_id = #{restaurantId}
+    </select>
+
+    <insert id="insertRestaurant" parameterType="Restaurant" useGeneratedKeys="true" keyProperty="restaurantId">
+        insert into cy_restaurant
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="restaurantNo != null and restaurantNo != ''">restaurant_no,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="legalPerson != null">legal_person,</if>
+            <if test="tel != null">tel,</if>
+            <if test="premises != null">premises,</if>
+            <if test="signDate != null">sign_date,</if>
+            <if test="expireDate != null">expire_date,</if>
+            <if test="size != null">size,</if>
+            <if test="openid != null">openid,</if>
+            <if test="shortName != null">short_name,</if>
+            <if test="diningTypeId != null">dining_type_id,</if>
+            <!--<if test="regionId != null">region_id,</if>-->
+            <if test="area != null">area,</if>
+            <if test="longitude != null">longitude,</if>
+            <if test="latitude != null">latitude,</if>
+            <if test="hasOilWaterSeparator != null">has_oil_water_separator,</if>
+            <if test="hasFumeCleaner != null">has_fume_cleaner,</if>
+            <if test="hasDischargePermit != null">has_discharge_permit,</if>
+            <if test="dischargeNo != null">discharge_no,</if>
+            <if test="validityDay != null">validity_day,</if>
+            <if test="closedDay != null">closed_day,</if>
+            <if test="gasTypeId != null">gas_type_id,</if>
+            <if test="haskwoRecoveryAgreement != null">haskwo_recovery_agreement,</if>
+            <if test="storePhoto != null">store_photo,</if>
+            <if test="dischargePhoto != null">discharge_photo,</if>
+            <if test="separatorPhoto != null">separator_photo,</if>
+            <if test="cleanerPhoto != null">cleaner_photo,</if>
+            <if test="oilPhoto != null">oil_photo,</if>
+            <if test="idPhoto != null">id_photo,</if>
+            <if test="qrCode != null">qr_code,</if>
+            <if test="haskwosms != null">haskwosms,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="restaurantNo != null and restaurantNo != ''">#{restaurantNo},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="legalPerson != null">#{legalPerson},</if>
+            <if test="tel != null">#{tel},</if>
+            <if test="premises != null">#{premises},</if>
+            <if test="signDate != null">#{signDate},</if>
+            <if test="expireDate != null">#{expireDate},</if>
+            <if test="size != null">#{size},</if>
+            <if test="openid != null">#{openid},</if>
+            <if test="shortName != null">#{shortName},</if>
+            <if test="diningTypeId != null">#{diningTypeId},</if>
+            <!--<if test="regionId != null">#{regionId},</if>-->
+            <if test="area != null">#{area},</if>
+            <if test="longitude != null">#{longitude},</if>
+            <if test="latitude != null">#{latitude},</if>
+            <if test="hasOilWaterSeparator != null">#{hasOilWaterSeparator},</if>
+            <if test="hasFumeCleaner != null">#{hasFumeCleaner},</if>
+            <if test="hasDischargePermit != null">#{hasDischargePermit},</if>
+            <if test="dischargeNo != null">#{dischargeNo},</if>
+            <if test="validityDay != null">#{validityDay},</if>
+            <if test="closedDay != null">#{closedDay},</if>
+            <if test="gasTypeId != null">#{gasTypeId},</if>
+            <if test="haskwoRecoveryAgreement != null">#{haskwoRecoveryAgreement},</if>
+            <if test="storePhoto != null">#{storePhoto},</if>
+            <if test="dischargePhoto != null">#{dischargePhoto},</if>
+            <if test="separatorPhoto != null">#{separatorPhoto},</if>
+            <if test="cleanerPhoto != null">#{cleanerPhoto},</if>
+            <if test="oilPhoto != null">#{oilPhoto},</if>
+            <if test="idPhoto != null">#{idPhoto},</if>
+            <if test="qrCode != null">#{qrCode},</if>
+            <if test="haskwosms != null">#{haskwosms},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRestaurant" parameterType="Restaurant">
+        update cy_restaurant
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="restaurantNo != null and restaurantNo != ''">restaurant_no = #{restaurantNo},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="legalPerson != null">legal_person = #{legalPerson},</if>
+            <if test="tel != null">tel = #{tel},</if>
+            <if test="premises != null">premises = #{premises},</if>
+            <if test="signDate != null">sign_date = #{signDate},</if>
+            <if test="expireDate != null">expire_date = #{expireDate},</if>
+            <if test="size != null">size = #{size},</if>
+            <if test="openid != null">openid = #{openid},</if>
+            <if test="shortName != null">short_name = #{shortName},</if>
+            <if test="diningTypeId != null">dining_type_id = #{diningTypeId},</if>
+            <!--<if test="regionId != null">region_id = #{regionId},</if>-->
+            <if test="area != null">area = #{area},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="hasOilWaterSeparator != null">has_oil_water_separator = #{hasOilWaterSeparator},</if>
+            <if test="hasFumeCleaner != null">has_fume_cleaner = #{hasFumeCleaner},</if>
+            <if test="hasDischargePermit != null">has_discharge_permit = #{hasDischargePermit},</if>
+            <if test="dischargeNo != null">discharge_no = #{dischargeNo},</if>
+            <if test="validityDay != null">validity_day = #{validityDay},</if>
+            <if test="closedDay != null">closed_day = #{closedDay},</if>
+            <if test="gasTypeId != null">gas_type_id = #{gasTypeId},</if>
+            <if test="haskwoRecoveryAgreement != null">haskwo_recovery_agreement = #{haskwoRecoveryAgreement},</if>
+            <if test="storePhoto != null">store_photo = #{storePhoto},</if>
+            <if test="dischargePhoto != null">discharge_photo = #{dischargePhoto},</if>
+            <if test="separatorPhoto != null">separator_photo = #{separatorPhoto},</if>
+            <if test="cleanerPhoto != null">cleaner_photo = #{cleanerPhoto},</if>
+            <if test="oilPhoto != null">oil_photo = #{oilPhoto},</if>
+            <if test="idPhoto != null">id_photo = #{idPhoto},</if>
+            <if test="qrCode != null">qr_code = #{qrCode},</if>
+            <if test="haskwosms != null">haskwosms = #{haskwosms},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where restaurant_id = #{restaurantId}
+    </update>
+
+    <delete id="deleteRestaurantById" parameterType="Long">
+        delete from cy_restaurant where restaurant_id = #{restaurantId}
+    </delete>
+
+    <delete id="deleteRestaurantByIds" parameterType="String">
+        delete from cy_restaurant where restaurant_id in
+        <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
+            #{restaurantId}
+        </foreach>
+    </delete>
+
+    <!--<select id="canRecycle" resultMap="RestaurantResult">-->
+        <!--SELECT r.*-->
+        <!--FROM cy_restaurant r-->
+        <!--LEFT JOIN sys_dept d-->
+        <!--ON r.dept_id = d.dept_id-->
+        <!--where 1=1-->
+        <!--<if test="restaurantId != null ">and restaurant_id = #{restaurantId}</if>-->
+        <!--<if test="name != null ">and name like concat('%', #{name}, '%')</if>-->
+        <!--AND (d.dept_id IN (SELECT dept_id FROM sys_role_dept WHERE role_id IN-->
+        <!--(select role_id from sys_user_role where user_id=#{userId})-->
+        <!--))-->
+    <!--</select>-->
+    <select id="canRecycle" resultMap="RestaurantResult">
+        select r.*
+        from cy_restaurant r
+        left join sys_dept d on r.dept_id = d.dept_id
+        where 1=1
+        <if test="restaurantId != null ">and restaurant_id = #{restaurantId}</if>
+        <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+        ${sqlString}
+    </select>
+</mapper>

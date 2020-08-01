@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.catering.mapper.CheckRecordMapper">
+
+    <resultMap type="CheckRecord" id="CheckRecordResult">
+        <result property="recordId" column="record_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="restaurantId" column="restaurant_id"/>
+        <result property="location" column="location"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="img" column="img"/>
+        <result property="content" column="content"/>
+        <result property="checkDate" column="check_date"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectCheckRecordVo">
+        select record_id, user_id, restaurant_id, location, longitude, latitude, img, content, check_date, status, create_by,
+        create_time, update_by, update_time, remark from cy_check_record
+    </sql>
+
+    <select id="selectCheckRecordList" parameterType="CheckRecord" resultMap="CheckRecordResult">
+        <!--<include refid="selectCheckRecordVo"/>-->
+        select cr.* from cy_check_record cr
+        left join cy_restaurant r on cr.restaurant_id = r.restaurant_id
+        left join sys_dept d on r.dept_id = d.dept_id
+        left join sys_user u on cr.user_id = u.user_id
+        where 1=1
+        <if test="userId != null ">and cr.user_id = #{userId}</if>
+        <if test="restaurantId != null ">and cr.restaurant_id = #{restaurantId}</if>
+        <if test="status != null ">and cr.status = #{status}</if>
+        <if test="params.restaurantName != null and params.restaurantName != ''">
+            and r.name like concat('%', #{params.restaurantName}, '%')
+        </if>
+        <if test="params.userName != null and params.userName != ''">
+            and u.user_name = #{params.userName}
+        </if>
+        <if test="params.beginCheckDate != null and params.beginCheckDate != ''">
+            and cr.check_date >= #{params.beginCheckDate}
+        </if>
+        <if test="params.endCheckDate != null and params.endCheckDate != ''">
+            and #{params.endCheckDate} >= cr.check_date
+        </if>
+        <!--<if test="params.beginCheckDate != null and params.beginCheckDate != '' and params.endCheckDate != null and params.endCheckDate != ''">-->
+            <!--and check_date between #{params.beginCheckDate} and #{params.endCheckDate}-->
+        <!--</if>-->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectCheckRecordById" parameterType="Long" resultMap="CheckRecordResult">
+        <include refid="selectCheckRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertCheckRecord" parameterType="CheckRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into cy_check_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="restaurantId != null">restaurant_id,</if>
+            <if test="location != null">location,</if>
+            <if test="longitude != null">longitude,</if>
+            <if test="latitude != null">latitude,</if>
+            <if test="img != null">img,</if>
+            <if test="content != null">content,</if>
+            <if test="checkDate != null">check_date,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="restaurantId != null">#{restaurantId},</if>
+            <if test="location != null">#{location},</if>
+            <if test="longitude != null">#{longitude},</if>
+            <if test="latitude != null">#{latitude},</if>
+            <if test="img != null">#{img},</if>
+            <if test="content != null">#{content},</if>
+            <if test="checkDate != null">#{checkDate},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateCheckRecord" parameterType="CheckRecord">
+        update cy_check_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="restaurantId != null">restaurant_id = #{restaurantId},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="img != null">img = #{img},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="checkDate != null">check_date = #{checkDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteCheckRecordById" parameterType="Long">
+        delete from cy_check_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteCheckRecordByIds" parameterType="String">
+        delete from cy_check_record where record_id in
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+
+</mapper>

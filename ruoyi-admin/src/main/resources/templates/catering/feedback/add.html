@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增意见反馈')"/>
+    <th:block th:include="include :: jasny-bootstrap-css"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-feedback-add">
+        <input name="userId" type="hidden" id="userId"/>
+        <!--<input name="restaurantId" type="hidden" id="restaurantId"/>-->
+        <!--<div class="form-group">-->
+            <!--<label class="col-sm-3 control-label">反馈来源：</label>-->
+            <!--<div class="col-sm-8">-->
+                <!--<select name="type" class="form-control m-b" th:with="type=${@dict.getType('sys_subject_num')}">-->
+                    <!--<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>-->
+                <!--</select>-->
+            <!--</div>-->
+        <!--</div>-->
+        <div class="form-group">
+            <label class="col-sm-3 control-label">用户：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input name="userName" onclick="selectUser()" id="userName" type="text" placeholder="请选择用户"
+                           class="form-control" readonly>
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <!--<div class="form-group">-->
+            <!--<label class="col-sm-3 control-label">餐馆：</label>-->
+            <!--<div class="col-sm-8">-->
+                <!--<div class="input-group">-->
+                    <!--<input name="restaurantName" onclick="selectRestaurant()" id="restaurantName" type="text" placeholder="请选择餐馆"-->
+                           <!--class="form-control" readonly>-->
+                    <!--<span class="input-group-addon"><i class="fa fa-search"></i></span>-->
+                <!--</div>-->
+                <!--&lt;!&ndash;<input name="restaurantId" class="form-control" type="text">&ndash;&gt;-->
+            <!--</div>-->
+        <!--</div>-->
+        <div class="form-group">
+            <label class="col-sm-3 control-label">建议内容：</label>
+            <div class="col-sm-8">
+                <textarea name="content" class="form-control"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">取证照片：</label>
+            <input name="img" type="hidden">
+            <div class="col-sm-8">
+                <div class="fileinput fileinput-new" data-provides="fileinput">
+                    <div class="fileinput-preview thumbnail" data-trigger="fileinput"
+                         style="width: 200px; height: 150px;"></div>
+                    <div>
+                    <span class="btn btn-white btn-file"><span class="fileinput-new">选择图片</span><span
+                            class="fileinput-exists">更改</span><input type="file" id="img"></span>
+                        <a href="#" class="btn btn-white fileinput-exists" data-dismiss="fileinput">清除</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<div class="form-group">-->
+            <!--<label class="col-sm-3 control-label">是否已读：</label>-->
+            <!--<div class="col-sm-8">-->
+                <!--<div class="radio-box" th:each="dict : ${@dict.getType('sys_has_read')}">-->
+                    <!--<input type="radio" th:id="${'hasRead_' + dict.dictCode}" name="hasRead"-->
+                           <!--th:value="${dict.dictValue}" th:checked="${dict.default}">-->
+                    <!--<label th:for="${'hasRead_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<div class="form-group">-->
+            <!--<label class="col-sm-3 control-label">状态：</label>-->
+            <!--<div class="col-sm-8">-->
+                <!--<div class="radio-box" th:each="dict : ${@dict.getType('sys_process_status')}">-->
+                    <!--<input type="radio" th:id="${'status_' + dict.dictCode}" name="status" th:value="${dict.dictValue}"-->
+                           <!--th:checked="${dict.default}">-->
+                    <!--<label th:for="${'status_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: jasny-bootstrap-js"/>
+<script th:inline="javascript">
+    var prefix = ctx + "catering/feedback"
+    $("#form-feedback-add").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            uploadImg()
+            setTimeout(function () {
+                $.operate.save(prefix + "/add", $('#form-feedback-add').serialize());
+            },1000)
+        }
+    }
+
+    function selectUser() {
+        var url = prefix + '/selectUser';
+        var options = {
+            title: '选择用户',
+            url: url,
+            callBack: doSubmit
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit(index, layero) {
+        var table = layero.find("iframe")[0].contentWindow.$.table;
+        var rows = table.selectFirstColumns();
+        if (rows.length != 1) {
+            $.modal.alertWarning("请选择用户");
+            return;
+        }
+        $("#userName").val(table.selectColumns("userName").join())
+        $("#userId").val(rows.join())
+        layer.close(index);
+    }
+
+    // function selectRestaurant() {
+    //     var url = prefix + '/selectRestaurant';
+    //     var options = {
+    //         title: '选择餐馆',
+    //         url: url,
+    //         callBack: doSubmit2
+    //     };
+    //     $.modal.openOptions(options);
+    // }
+    //
+    // function doSubmit2(index, layero) {
+    //     var table = layero.find("iframe")[0].contentWindow.$.table;
+    //     var rows = table.selectFirstColumns();
+    //     if (rows.length != 1) {
+    //         $.modal.alertWarning("请选择一家餐馆");
+    //         return;
+    //     }
+    //     $("#restaurantName").val(table.selectColumns("name").join())
+    //     $("#restaurantId").val(rows.join())
+    //     layer.close(index);
+    // }
+
+    /**
+     * 上传图片
+     */
+    function uploadImg() {
+        if ($("#img").val() == '') {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('file', document.getElementById("img").files[0]);
+        $.ajax({
+            url: ctx + "common/upload",
+            type: "post",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.code == 0) {
+                    $("input[name='img']").each(function () {
+                        $(this).val(data.url)
+                    });
+                } else {
+                    alert(data.msg);
+                }
+            },
+            error: function (data) {
+                alert("上传失败")
+            }
+        });
+    }
+</script>
+</body>
+</html>

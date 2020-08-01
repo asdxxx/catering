@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('修改回收记录')"/>
+    <th:block th:include="include :: datetimepicker-css"/>
+    <th:block th:include="include :: jasny-bootstrap-css"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-recoveryRecord-edit" th:object="${recoveryRecord}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <input name="userId" type="hidden" id="userId_edit" th:value="*{user.userId}"/>
+        <input name="restaurantId" type="hidden" id="restaurantId_edit" th:value="*{restaurant.restaurantId}"/>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">餐馆：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input name="restaurantName" onclick="selectRestaurant()" id="restaurantName_edit" type="text"
+                           placeholder="请选择餐馆"
+                           class="form-control" th:field="*{restaurant.name}" readonly>
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">定位地点：</label>
+            <div class="col-sm-8">
+                <input name="location" th:field="*{location}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">回收人员：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input name="userName" onclick="selectUser()" id="userName_edit" type="text" placeholder="请选择回收人员"
+                           class="form-control" th:field="*{user.userName}" readonly>
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">回收车号：</label>
+            <div class="col-sm-8">
+                <input name="carNo" th:field="*{carNo}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">垃圾分类：</label>
+            <div class="col-sm-8">
+                <select name="garbageId" class="form-control m-b">
+                    <option value="">所有</option>
+                    <option th:each="garbage : ${garbages}" th:text="${garbage.name}"
+                            th:value="${garbage.garbageId}"
+                            th:selected="${garbage.garbageId==recoveryRecord.garbageId}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">回收重量：</label>
+            <div class="col-sm-8">
+                <input name="weight" th:field="*{weight}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">取证照片：</label>
+            <input name="img" type="hidden" th:field="*{img}">
+            <div class="col-sm-8">
+                <div class="fileinput fileinput-new" data-provides="fileinput">
+                    <div class="fileinput-new thumbnail" style="width: 200px; height: 150px;">
+                        <img th:src="*{img}">
+                    </div>
+                    <div class="fileinput-preview fileinput-exists thumbnail"
+                         style="max-width: 200px; max-height: 150px;" id="imgPreview"></div>
+                    <div>
+                                <span class="btn btn-white btn-file"><span class="fileinput-new">选择图片</span><span
+                                        class="fileinput-exists">更改</span><input type="file"
+                                                                                 id="img_edit"></span>
+                        <a href="#" class="btn btn-white fileinput-exists" data-dismiss="fileinput">清除</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">回收日期：</label>
+            <div class="col-sm-8">
+                <div class="input-group date">
+                    <input name="recoveryDate" th:value="${#dates.format(recoveryRecord.recoveryDate, 'yyyy-MM-dd')}"
+                           class="form-control" placeholder="yyyy-MM-dd" type="text">
+                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+        </div>
+        <!--<div class="form-group">-->
+            <!--<label class="col-sm-3 control-label">状态：</label>-->
+            <!--<div class="col-sm-8">-->
+                <!--<div class="radio-box" th:each="dict : ${@dict.getType('sys_recovery_status')}">-->
+                    <!--<input type="radio" th:id="${'status_' + dict.dictCode}" name="status" th:value="${dict.dictValue}"-->
+                           <!--th:field="*{status}">-->
+                    <!--<label th:for="${'status_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: datetimepicker-js"/>
+<th:block th:include="include :: jasny-bootstrap-js"/>
+<script th:inline="javascript">
+    var prefix = ctx + "catering/recoveryRecord";
+    $("#form-recoveryRecord-edit").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            uploadImg()
+            setTimeout(function () {
+                $.operate.save(prefix + "/edit", $('#form-recoveryRecord-edit').serialize());
+            }, 1000)
+        }
+    }
+
+    $("input[name='recoveryDate']").datetimepicker({
+        format: "yyyy-mm-dd",
+        minView: "month",
+        autoclose: true
+    });
+
+    function selectUser() {
+        var url = prefix + '/selectUser';
+        var options = {
+            title: '选择用户',
+            url: url,
+            callBack: doSubmit
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit(index, layero) {
+        var table = layero.find("iframe")[0].contentWindow.$.table;
+        var rows = table.selectFirstColumns();
+        if (rows.length != 1) {
+            $.modal.alertWarning("请选择用户");
+            return;
+        }
+        $("#userName_edit").val(table.selectColumns("userName").join())
+        $("#userId_edit").val(rows.join())
+        layer.close(index);
+    }
+
+    function selectRestaurant() {
+        var url = prefix + '/selectRestaurant';
+        var options = {
+            title: '选择餐馆',
+            url: url,
+            callBack: doSubmit2
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit2(index, layero) {
+        var table = layero.find("iframe")[0].contentWindow.$.table;
+        var rows = table.selectFirstColumns();
+        if (rows.length != 1) {
+            $.modal.alertWarning("请选择一家餐馆");
+            return;
+        }
+        $("#restaurantName_edit").val(table.selectColumns("name").join())
+        $("#restaurantId_edit").val(rows.join())
+        layer.close(index);
+    }
+
+    function uploadImg() {
+        if ($("#imgPreview>img").length == 0) {
+            return
+        }
+        var formData = new FormData();
+        formData.append('file', document.getElementById("img_edit").files[0]);
+        $.ajax({
+            url: ctx + "common/upload",
+            type: "post",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.code == 0) {
+                    $("input[name='img']").each(function () {
+                        $(this).val(data.url)
+                    });
+                } else {
+                    alert(data.msg);
+                }
+            },
+            error: function (data) {
+                alert("上传失败")
+            }
+        });
+    }
+</script>
+</body>
+</html>

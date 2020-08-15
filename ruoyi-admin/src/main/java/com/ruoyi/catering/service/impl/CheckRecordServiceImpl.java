@@ -1,6 +1,8 @@
 package com.ruoyi.catering.service.impl;
 
 import java.util.List;
+
+import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,5 +95,10 @@ public class CheckRecordServiceImpl implements ICheckRecordService
     public int deleteCheckRecordById(Long recordId)
     {
         return checkRecordMapper.deleteCheckRecordById(recordId);
+    }
+
+    @Override
+    public List<CheckRecord> selectListByRestaurantId(String ids) {
+        return checkRecordMapper.selectListByRestaurantId(Convert.toStrArray(ids));
     }
 }

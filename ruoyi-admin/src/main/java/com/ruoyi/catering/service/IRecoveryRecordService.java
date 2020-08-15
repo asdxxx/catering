@@ -60,4 +60,6 @@ public interface IRecoveryRecordService
     public int deleteRecoveryRecordById(Long id);
 
     public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
+
+    public List<RecoveryRecord> selectListByRestaurantId(String ids);
 }

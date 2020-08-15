@@ -20,16 +20,20 @@ import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.utils.CacheUtils;
+import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.framework.shiro.service.SysPasswordService;
 import com.ruoyi.framework.util.ShiroUtils;
+import com.ruoyi.framework.web.domain.server.Sys;
 import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysRole;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.domain.SysUserRole;
+import com.ruoyi.system.mapper.SysRoleDeptMapper;
 import com.ruoyi.system.service.ISysDeptService;
+import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * @program: catering
@@ -83,6 +85,10 @@ public class UtilsApiController {
     private SysPasswordService passwordService;
     @Autowired
     private ISysUserService userService;
+    @Autowired
+    private ISysRoleService roleService;
+    @Autowired
+    private ICheckRecordService checkRecordService;
 
     //用户登录
     @PostMapping("/checkLogin")
@@ -103,7 +109,7 @@ public class UtilsApiController {
             if (roles == null || roles.size() == 0) {
                 return AjaxResult.error("未知角色，无法登陆");
             }
-            if (roles.get(0).getRoleName().contains("回收")) {
+            if (roles.get(0).getRoleKey().contains("recycle")) {
                 userData.setType(2);
                 userData.setCarNo(user.getRemark());
             } else {
@@ -145,28 +151,87 @@ public class UtilsApiController {
         }
     }
 
+//    //登陆后首页回收情况
+//    @GetMapping(value = "/recoveryCounts")
+//    public AjaxResult recoveryCounts(Long userId) {
+//        SysUser sysUser = userService.selectUserById(userId);
+//        String sqlString = BaseUtil.dataScopeFilter(sysUser);
+//        List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, "");
+////        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, "");
+//        int unRecoveredCount = 0;
+//        int recoveredCount = 0;
+//        int closedCount = 0;
+//        List<String> noticeMsgs = new ArrayList<>();
+//        for (Restaurant restaurant : restaurants) {
+//            if (restaurant.getStatus() != null && restaurant.getStatus() == 1) {
+//                closedCount++;
+//                continue;
+//            }
+//            boolean isRecovered = BusinessUtil.isRecovered(restaurant);
+//            if (isRecovered) {
+//                recoveredCount++;
+//            } else {
+//                unRecoveredCount++;
+//                noticeMsgs.add(restaurant.getName() + "已超过回收时间，请尽快去回收！");
+//            }
+//        }
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("noticeMsgs", noticeMsgs);
+//        jsonObject.put("unRecoveredCount", unRecoveredCount);
+//        jsonObject.put("recoveredCount", recoveredCount);
+//        jsonObject.put("closedCount", closedCount);
+//        return AjaxResult.success(jsonObject);
+//    }
+
     //登陆后首页回收情况
     @GetMapping(value = "/recoveryCounts")
     public AjaxResult recoveryCounts(Long userId) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.add(Calendar.DATE, -3);
+        Date smallDate = cal.getTime();
+        cal.add(Calendar.DATE, -3);
+        Date mediumDate = cal.getTime();
+        cal.add(Calendar.DATE, -3);
+        Date largeDate = cal.getTime();
         SysUser sysUser = userService.selectUserById(userId);
         String sqlString = BaseUtil.dataScopeFilter(sysUser);
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, "");
-//        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, "");
+        String ids = "";
+        for (Restaurant restaurant : restaurants) {
+            ids += restaurant.getRestaurantId() + ",";
+        }
+        if (ids.length() > 0) {
+            ids = ids.substring(0, ids.length() - 1);
+        }
+        List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectListByRestaurantId(ids);
+
         int unRecoveredCount = 0;
         int recoveredCount = 0;
         int closedCount = 0;
         List<String> noticeMsgs = new ArrayList<>();
+        List<Long> hasIds = new ArrayList<>();
+        for (RecoveryRecord rr : recoveryRecords) {
+            Restaurant r = restaurantService.selectRestaurantById(rr.getRestaurantId());
+            int size = r.getSize();
+            Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+            if (rr.getRecoveryDate().after(date)) {
+                recoveredCount++;
+                hasIds.add(rr.getRestaurantId());
+            }
+        }
         for (Restaurant restaurant : restaurants) {
             if (restaurant.getStatus() != null && restaurant.getStatus() == 1) {
                 closedCount++;
                 continue;
             }
-            boolean isRecovered = BusinessUtil.isRecovered(restaurant);
-            if (isRecovered) {
-                recoveredCount++;
-            } else {
+            if (!hasIds.contains(restaurant.getRestaurantId())) {
                 unRecoveredCount++;
-                noticeMsgs.add(restaurant.getName() + "已超过回收时间，请尽快去回收！");
+                if (unRecoveredCount <= 50) {
+                    noticeMsgs.add(restaurant.getName() + "已超过回收时间，请尽快去回收！");
+                }
             }
         }
         JSONObject jsonObject = new JSONObject();
@@ -177,28 +242,88 @@ public class UtilsApiController {
         return AjaxResult.success(jsonObject);
     }
 
+//    //登陆后首页检查情况
+//    @GetMapping(value = "/checkCounts")
+//    public AjaxResult checkCounts(Long userId) {
+//        SysUser sysUser = userService.selectUserById(userId);
+//        String sqlString = BaseUtil.dataScopeFilter(sysUser);
+//        List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, "");
+////        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, "");
+//        int unCheckedCount = 0;
+//        int checkedCount = 0;
+//        int closedCount = 0;
+//        List<String> noticeMsgs = new ArrayList<>();
+//        for (Restaurant restaurant : restaurants) {
+//            if (restaurant.getStatus() == 1) {
+//                closedCount++;
+//                continue;
+//            }
+//            boolean isChecked = BusinessUtil.isChecked(restaurant);
+//            if (isChecked) {
+//                checkedCount++;
+//            } else {
+//                unCheckedCount++;
+//                noticeMsgs.add(restaurant.getName() + "已超过检查时间，请尽快去检查！");
+//            }
+//        }
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("noticeMsgs", noticeMsgs);
+//        jsonObject.put("unCheckedCount", unCheckedCount);
+//        jsonObject.put("checkedCount", checkedCount);
+//        jsonObject.put("closedCount", closedCount);
+//        return AjaxResult.success(jsonObject);
+//    }
+
     //登陆后首页检查情况
     @GetMapping(value = "/checkCounts")
     public AjaxResult checkCounts(Long userId) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.add(Calendar.DATE, -3);
+        Date smallDate = cal.getTime();
+        cal.add(Calendar.DATE, -3);
+        Date mediumDate = cal.getTime();
+        cal.add(Calendar.DATE, -3);
+        Date largeDate = cal.getTime();
+
         SysUser sysUser = userService.selectUserById(userId);
         String sqlString = BaseUtil.dataScopeFilter(sysUser);
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, "");
-//        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, "");
+
+        String ids = "";
+        for (Restaurant restaurant : restaurants) {
+            ids += restaurant.getRestaurantId() + ",";
+        }
+        if (ids.length() > 0) {
+            ids = ids.substring(0, ids.length() - 1);
+        }
+        List<CheckRecord> checkRecords = checkRecordService.selectListByRestaurantId(ids);
         int unCheckedCount = 0;
         int checkedCount = 0;
         int closedCount = 0;
         List<String> noticeMsgs = new ArrayList<>();
+        List<Long> hasIds = new ArrayList<>();
+        for (CheckRecord cr : checkRecords) {
+            Restaurant r = restaurantService.selectRestaurantById(cr.getRestaurantId());
+            int size = r.getSize();
+            Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+            if (cr.getCheckDate().after(date)) {
+                checkedCount++;
+                hasIds.add(cr.getRestaurantId());
+            }
+        }
         for (Restaurant restaurant : restaurants) {
             if (restaurant.getStatus() == 1) {
                 closedCount++;
                 continue;
             }
-            boolean isChecked = BusinessUtil.isChecked(restaurant);
-            if (isChecked) {
-                checkedCount++;
-            } else {
+            if (!hasIds.contains(restaurant.getRestaurantId())) {
                 unCheckedCount++;
-                noticeMsgs.add(restaurant.getName() + "已超过检查时间，请尽快去检查！");
+                if (unCheckedCount <= 50) {
+                    noticeMsgs.add(restaurant.getName() + "已超过检查时间，请尽快去检查！");
+                }
             }
         }
         JSONObject jsonObject = new JSONObject();
@@ -210,6 +335,31 @@ public class UtilsApiController {
     }
 
     //扫一扫上报
+    @CrossOrigin
+    @RequestMapping(value = "/wxScan")
+    public AjaxResult wxScan(Long restaurantId) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(restaurantId);
+        if (restaurant == null) {
+            return AjaxResult.error("未查询到商户信息");
+        }
+        JSONObject jsonObject = new JSONObject();
+        boolean isChecked = BusinessUtil.isChecked(restaurant);
+        jsonObject.put("status", isChecked ? "合格" : "不合格");
+        jsonObject.put("restaurant", restaurant);
+        List<SysUser> userList = userService.selectRecycleByDeptId(restaurant.getDeptId());
+        SysUser user = new SysUser();
+        if (userList != null && userList.size() > 0) {
+            user = userList.get(0);
+        }
+        jsonObject.put("user", user);
+        RecoveryRecord recoveryRecord = new RecoveryRecord();
+        recoveryRecord.setRestaurantId(restaurantId);
+        List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
+        jsonObject.put("recoveryRecordList", recoveryRecords);
+        return AjaxResult.success(jsonObject);
+    }
+
+    //扫一扫上报
     @RequestMapping(value = "/scan")
     public AjaxResult scan(Long userId, Long restaurantId) {
         SysUser sysUser = userService.selectUserById(userId);
@@ -217,11 +367,11 @@ public class UtilsApiController {
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, restaurantId, "");
 //        List<Restaurant> restaurants = restaurantService.canRecycle(userId, restaurantId, "");
         if (restaurants == null || restaurants.size() != 1) {
-            return AjaxResult.error("未查询到餐馆信息");
+            return AjaxResult.error("未查询到商户信息");
         }
         Restaurant restaurant = restaurants.get(0);
         if (restaurant.getStatus().equals("1")) {
-            return AjaxResult.error("餐馆为停业状态");
+            return AjaxResult.error("商户为停业状态");
         }
         return AjaxResult.success(restaurant);
 //        SysDept dept = deptService.selectDeptById(restaurant.getDeptId());
@@ -270,7 +420,8 @@ public class UtilsApiController {
         // 上传文件路径
         String filePath = Global.getUploadPath();
         String fileName = FileUploadUtils.upload(filePath, file);
-        String url = serverConfig.getUrl() + fileName;
+//        String url = serverConfig.getUrl() + fileName;
+        String url = "http://www.xiha.work:8900" + fileName;
         return AjaxResult.success("上传成功", url);
     }
 
@@ -281,7 +432,7 @@ public class UtilsApiController {
             Long restaurantId = Long.parseLong(id);
             Restaurant restaurant = restaurantService.selectRestaurantById(restaurantId);
             if (restaurant == null) {
-                return AjaxResult.error("未查询到id为" + id + "的餐馆信息");
+                return AjaxResult.error("未查询到id为" + id + "的商户信息");
             }
             SysDept dept = deptService.selectDeptById(restaurant.getDeptId());
             JSONObject jsonObject = new JSONObject();

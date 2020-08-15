@@ -2,6 +2,7 @@ package com.ruoyi.catering.mapper;
 
 import java.util.List;
 import com.ruoyi.catering.domain.CheckRecord;
+import com.ruoyi.catering.domain.RecoveryRecord;
 
 /**
  * 检查记录Mapper接口
@@ -58,4 +59,7 @@ public interface CheckRecordMapper
      * @return 结果
      */
     public int deleteCheckRecordByIds(String[] recordIds);
+
+    public List<CheckRecord> selectListByRestaurantId(String[] ids);
+
 }

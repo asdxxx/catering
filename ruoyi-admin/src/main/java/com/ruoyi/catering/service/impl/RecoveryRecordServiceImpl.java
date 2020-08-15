@@ -92,4 +92,9 @@ public class RecoveryRecordServiceImpl implements IRecoveryRecordService {
     public RecoveryRecord selectLastRecoveryRecord(Long restaurantId) {
         return recoveryRecordMapper.selectLastRecoveryRecord(restaurantId);
     }
+
+    @Override
+    public List<RecoveryRecord> selectListByRestaurantId(String ids) {
+        return recoveryRecordMapper.selectListByRestaurantId(Convert.toStrArray(ids));
+    }
 }

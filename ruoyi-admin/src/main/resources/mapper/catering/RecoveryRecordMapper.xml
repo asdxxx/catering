@@ -62,6 +62,7 @@
         <!--and rr.recovery_date between #{params.beginRecoveryDate} and #{params.endRecoveryDate}-->
         <!--</if>-->
         ${params.dataScope}
+        order by rr.recovery_date desc
     </select>
 
     <select id="selectRecoveryRecordById" parameterType="Long" resultMap="RecoveryRecordResult">
@@ -146,5 +147,14 @@
     <select id="selectLastRecoveryRecord" parameterType="Long" resultMap="RecoveryRecordResult">
         <include refid="selectRecoveryRecordVo"/>
         where restaurant_id = #{restaurantId}
+    </select>
+
+    <select id="selectListByRestaurantId" parameterType="String" resultMap="RecoveryRecordResult">
+        SELECT restaurant_id,MAX(recovery_date) recovery_date FROM cy_recovery_record
+        WHERE restaurant_id IN
+        <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
+            #{restaurantId}
+        </foreach>
+        GROUP BY restaurant_id
     </select>
 </mapper>

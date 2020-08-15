@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,6 +41,8 @@ public class CheckRecordApiController {
 
     @PostMapping(value = "save")
     public AjaxResult save(CheckRecord checkRecord) {
+        checkRecord.setCheckDate(new Date());
+//        checkRecord.setCreateBy(checkRecord.getUserId().toString());
         int result = checkRecordService.insertCheckRecord(checkRecord);
         if (result <= 0) {
             return AjaxResult.error("上报失败");

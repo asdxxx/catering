@@ -121,4 +121,20 @@ public interface SysUserMapper
      * @return 结果
      */
     public SysUser checkEmailUnique(String email);
+
+    /**
+     * 根据所属区域查询回收人员
+     *
+     * @param deptId 区域id
+     * @return 用户信息集合信息
+     */
+    public List<SysUser> selectRecycleByDeptId(Long deptId);
+
+    /**
+     * 根据所属区域查询管理人员
+     *
+     * @param deptId 区域id
+     * @return 用户信息集合信息
+     */
+    public List<SysUser> selectManagerByDeptId(Long deptId);
 }

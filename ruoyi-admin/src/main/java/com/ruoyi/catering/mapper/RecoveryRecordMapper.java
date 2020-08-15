@@ -60,4 +60,6 @@ public interface RecoveryRecordMapper {
     public int deleteRecoveryRecordByIds(String[] ids);
 
     public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
+
+    public List<RecoveryRecord> selectListByRestaurantId(String[] ids);
 }

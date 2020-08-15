@@ -54,6 +54,8 @@ public class BusinessUtil {
             case 3:
                 cal.add(Calendar.DATE, -9);
                 break;
+            default:
+                cal.add(Calendar.DATE, -3);
         }
         Date date = cal.getTime();
         Map<String, Object> params = new HashMap<>();
@@ -83,6 +85,8 @@ public class BusinessUtil {
             case 3:
                 cal.add(Calendar.DATE, -9);
                 break;
+            default:
+                cal.add(Calendar.DATE, -3);
         }
         Date date = cal.getTime();
         Map<String, Object> params = new HashMap<>();

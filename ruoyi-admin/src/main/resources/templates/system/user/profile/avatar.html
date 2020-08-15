@@ -30,7 +30,8 @@ $(window).load(function() {
     var options = {
         thumbBox: '.thumbBox',
         spinner: '.spinner',
-        imgSrc: $.common.isEmpty(avatar) ? ctx + 'img/profile.jpg' : ctx + avatar.substr(1)
+        // imgSrc: $.common.isEmpty(avatar) ? ctx + 'img/profile.jpg' : ctx + avatar.substr(1)
+        imgSrc: $.common.isEmpty(avatar) ? ctx + 'img/profile.jpg' : 'http://www.xiha.work:8900'+avatar
     }
     cropper = $('.imageBox').cropbox(options);
     $('#avatar').on('change', function() {

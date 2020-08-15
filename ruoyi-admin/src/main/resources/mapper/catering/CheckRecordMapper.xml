@@ -128,4 +128,12 @@
         </foreach>
     </delete>
 
+    <select id="selectListByRestaurantId" parameterType="String" resultMap="CheckRecordResult">
+        SELECT restaurant_id,MAX(check_date) check_date FROM cy_check_record
+        WHERE restaurant_id IN
+        <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
+            #{restaurantId}
+        </foreach>
+        GROUP BY restaurant_id
+    </select>
 </mapper>

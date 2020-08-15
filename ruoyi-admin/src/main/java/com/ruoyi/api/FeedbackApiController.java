@@ -29,6 +29,7 @@ public class FeedbackApiController {
 
     @PostMapping(value = "save")
     public AjaxResult save(Feedback feedback) {
+//        feedback.setCreateBy(feedback.getUserId().toString());
         int result = feedbackService.insertFeedback(feedback);
         if (result <= 0) {
             return AjaxResult.error("上报失败");

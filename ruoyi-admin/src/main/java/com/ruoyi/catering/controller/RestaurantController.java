@@ -6,6 +6,7 @@ import com.ruoyi.catering.service.IDiningTypeService;
 import com.ruoyi.catering.service.IGasTypeService;
 import com.ruoyi.catering.service.IRegionService;
 import com.ruoyi.catering.service.IRestaurantService;
+import com.ruoyi.catering.vo.RestaurantExportVo;
 import com.ruoyi.catering.vo.RestaurantImportData;
 import com.ruoyi.catering.vo.RestaurantVo;
 import com.ruoyi.common.annotation.DataScope;
@@ -19,7 +20,9 @@ import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.framework.util.ShiroUtils;
 import com.ruoyi.system.domain.SysDept;
+import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysDeptService;
+import com.ruoyi.system.service.ISysUserService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,7 +32,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 餐饮单位信息Controller
@@ -52,6 +57,8 @@ public class RestaurantController extends BaseController {
     private IGasTypeService gasTypeService;
     @Autowired
     private ISysDeptService deptService;
+    @Autowired
+    private ISysUserService userService;
 
     @RequiresPermissions("catering:restaurant:view")
     @GetMapping()
@@ -86,6 +93,26 @@ public class RestaurantController extends BaseController {
         //return getDataTable(restaurantVos);
     }
 
+//    /**
+//     * 导出餐饮单位信息列表
+//     */
+//    @DataScope(deptAlias = "d")
+//    @RequiresPermissions("catering:restaurant:export")
+//    @Log(title = "餐饮单位信息", businessType = BusinessType.EXPORT)
+//    @PostMapping("/export")
+//    @ResponseBody
+//    public AjaxResult export(Restaurant restaurant) {
+//        List<Restaurant> list = restaurantService.selectRestaurantList(restaurant);
+//        List<RestaurantVo> restaurantVos = new ArrayList<>();
+//        for (Restaurant r : list) {
+//            RestaurantVo restaurantVo = toVo(r);
+//            restaurantVo.setQrCodeData("https://www.xiha.work/cy/index.html?appkey=df33cb8a73a3ae45749bd1ac6ddeb5e4&restaurantId=" + r.getRestaurantId() + "&name=" + r.getName());
+//            restaurantVos.add(restaurantVo);
+//        }
+//        ExcelUtil<RestaurantVo> util = new ExcelUtil<RestaurantVo>(RestaurantVo.class);
+//        return util.exportExcel(restaurantVos, "restaurant");
+//    }
+
     /**
      * 导出餐饮单位信息列表
      */
@@ -95,15 +122,32 @@ public class RestaurantController extends BaseController {
     @PostMapping("/export")
     @ResponseBody
     public AjaxResult export(Restaurant restaurant) {
+        Map param = new HashMap<>();
+        param.put("dataScope", "order by r.dept_id");
+        restaurant.setParams(param);
         List<Restaurant> list = restaurantService.selectRestaurantList(restaurant);
-        List<RestaurantVo> restaurantVos = new ArrayList<>();
+        List<RestaurantExportVo> restaurantExportVos = new ArrayList<>();
         for (Restaurant r : list) {
-            RestaurantVo restaurantVo = toVo(r);
-            restaurantVo.setQrCodeData("https://www.xiha.work/cy/index.html?appkey=df33cb8a73a3ae45749bd1ac6ddeb5e4&restaurantId=" + r.getRestaurantId() + "&name=" + r.getName());
-            restaurantVos.add(restaurantVo);
+            RestaurantExportVo restaurantExportVo = new RestaurantExportVo();
+            SysDept dept = deptService.selectDeptById(r.getDeptId());
+            restaurantExportVo.setDept(dept.getDeptName());
+            restaurantExportVo.setName(r.getName());
+            restaurantExportVo.setPremises(r.getPremises());
+            restaurantExportVo.setSize(r.getSize() + "");
+            List<SysUser> recycleList = userService.selectRecycleByDeptId(r.getDeptId());
+            if (recycleList != null && recycleList.size() == 1) {
+                restaurantExportVo.setRecycle(recycleList.get(0).getUserName() + recycleList.get(0).getPhonenumber());
+            }
+            List<SysUser> managerList = userService.selectManagerByDeptId(r.getDeptId());
+            if (managerList != null && managerList.size() == 1) {
+                restaurantExportVo.setManager(managerList.get(0).getUserName() + managerList.get(0).getPhonenumber());
+            }
+            restaurantExportVo.setTel("89868986");
+            restaurantExportVo.setQrData("https://www.xiha.work:9000/cy/index.html?appkey=df33cb8a73a3ae45749bd1ac6ddeb5e4&restaurantId=" + r.getRestaurantId() + "&name=" + r.getName());
+            restaurantExportVos.add(restaurantExportVo);
         }
-        ExcelUtil<RestaurantVo> util = new ExcelUtil<RestaurantVo>(RestaurantVo.class);
-        return util.exportExcel(restaurantVos, "restaurant");
+        ExcelUtil<RestaurantExportVo> util = new ExcelUtil<RestaurantExportVo>(RestaurantExportVo.class);
+        return util.exportExcel(restaurantExportVos, "restaurant");
     }
 
     /**
@@ -225,6 +269,22 @@ public class RestaurantController extends BaseController {
 //            }
             restaurant.setTel(data.getTel());
 
+//            if (StringUtils.isNotEmpty(data.getDept())) {
+//                SysDept dept = new SysDept();
+//                String after = "";
+//                if (data.getStatus().contains("李良双")) {
+//                    after = "-1";
+//                } else if (data.getStatus().contains("张龙")) {
+//                    after = "-2";
+//                } else if (data.getStatus().contains("张铁毕")) {
+//                    after = "-3";
+//                }
+//                dept.setDeptName(data.getDept() + after);
+//                List<SysDept> deptList = deptService.selectDeptList(dept);
+//                if (deptList != null && deptList.size() > 0) {
+//                    restaurant.setDeptId(deptList.get(0).getDeptId());
+//                }
+//            }
             if (StringUtils.isNotEmpty(data.getDept())) {
                 SysDept dept = new SysDept();
                 dept.setDeptName(data.getDept().substring(0, 2));

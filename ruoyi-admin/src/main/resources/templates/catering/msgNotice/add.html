@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增消息通知')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-msgNotice-add">
+            <input name="userId" type="hidden" id="userId"/>
+            <!--<div class="form-group">    -->
+                <!--<label class="col-sm-3 control-label">类型：</label>-->
+                <!--<div class="col-sm-8">-->
+                    <!--<div class="radio-box" th:each="dict : ${@dict.getType('sys_subject_num')}">-->
+                        <!--<input type="radio" th:id="${'type_' + dict.dictCode}" name="type" th:value="${dict.dictValue}" th:checked="${dict.default}">-->
+                        <!--<label th:for="${'type_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+            <div class="form-group">
+                <label class="col-sm-3 control-label">接收人：</label>
+                <div class="col-sm-8">
+                    <div class="input-group">
+                        <input name="userName" onclick="selectUser()" id="userName" type="text" placeholder="请选择接收人"
+                               class="form-control" readonly>
+                        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="form-group">    -->
+                <!--<label class="col-sm-3 control-label">接收人：</label>-->
+                <!--<div class="col-sm-8">-->
+                    <!--<input name="userId" class="form-control" type="text">-->
+                <!--</div>-->
+            <!--</div>-->
+            <div class="form-group">
+                <label class="col-sm-3 control-label">消息内容：</label>
+                <div class="col-sm-8">
+                    <textarea name="content" class="form-control"></textarea>
+                </div>
+            </div>
+            <!--<div class="form-group">    -->
+                <!--<label class="col-sm-3 control-label">是否已读：</label>-->
+                <!--<div class="col-sm-8">-->
+                    <!--<div class="radio-box" th:each="dict : ${@dict.getType('sys_has_read')}">-->
+                        <!--<input type="radio" th:id="${'hasRead_' + dict.dictCode}" name="hasRead" th:value="${dict.dictValue}" th:checked="${dict.default}">-->
+                        <!--<label th:for="${'hasRead_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">    -->
+                <!--<label class="col-sm-3 control-label">状态：</label>-->
+                <!--<div class="col-sm-8">-->
+                    <!--<div class="radio-box">-->
+                        <!--<input type="radio" name="status" value="">-->
+                        <!--<label th:for="status" th:text="未知"></label>-->
+                    <!--</div>-->
+                    <!--<span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>-->
+                <!--</div>-->
+            <!--</div>-->
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "catering/msgNotice"
+        $("#form-msgNotice-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-msgNotice-add').serialize());
+            }
+        }
+
+        function selectUser() {
+            var url = prefix + '/selectUser';
+            var options = {
+                title: '选择用户',
+                url: url,
+                callBack: doSubmit
+            };
+            $.modal.openOptions(options);
+        }
+
+        function doSubmit(index, layero) {
+            var table = layero.find("iframe")[0].contentWindow.$.table;
+            var rows = table.selectFirstColumns();
+            if (rows.length != 1) {
+                $.modal.alertWarning("请选择用户");
+                return;
+            }
+            $("#userName").val(table.selectColumns("userName").join())
+            $("#userId").val(rows.join())
+            layer.close(index);
+        }
+    </script>
+</body>
+</html>

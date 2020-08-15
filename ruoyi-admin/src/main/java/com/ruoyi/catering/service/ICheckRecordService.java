@@ -2,6 +2,7 @@ package com.ruoyi.catering.service;
 
 import java.util.List;
 import com.ruoyi.catering.domain.CheckRecord;
+import com.ruoyi.catering.domain.RecoveryRecord;
 
 /**
  * 检查记录Service接口
@@ -58,4 +59,7 @@ public interface ICheckRecordService
      * @return 结果
      */
     public int deleteCheckRecordById(Long recordId);
+
+    public List<CheckRecord> selectListByRestaurantId(String ids);
+
 }

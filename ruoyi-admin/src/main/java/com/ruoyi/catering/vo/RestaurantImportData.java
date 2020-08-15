@@ -19,6 +19,13 @@ public class RestaurantImportData {
 //     */
 //    @Excel(name = "客户编码")
 //    private String restaurantNo;
+
+    /**
+     * 合同签订日期
+     */
+    @Excel(name = "合同签订日期", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date signDate;
+
     /**
      * 店名
      */
@@ -30,6 +37,12 @@ public class RestaurantImportData {
      */
     @Excel(name = "所属区域")
     private String dept;
+
+    /**
+     * 合同到期时间
+     */
+    @Excel(name = "合同到期时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date expireDate;
 
     /**
      * 联系人
@@ -48,18 +61,6 @@ public class RestaurantImportData {
      */
     @Excel(name = "地址")
     private String premises;
-
-    /**
-     * 合同签订日期
-     */
-    @Excel(name = "合同签订日期", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date signDate;
-
-    /**
-     * 合同到期时间
-     */
-    @Excel(name = "合同到期时间", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date expireDate;
 
     /**
      * 规格

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,6 +45,7 @@ public class RecoveryRecordApiController {
 
     @PostMapping(value = "save")
     public AjaxResult save(RecoveryRecord recoveryRecord) {
+        recoveryRecord.setRecoveryDate(new Date());
         int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
         if (result <= 0) {
             return AjaxResult.error("上报失败");

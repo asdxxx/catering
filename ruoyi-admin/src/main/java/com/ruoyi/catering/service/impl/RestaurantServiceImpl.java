@@ -132,6 +132,7 @@ public class RestaurantServiceImpl implements IRestaurantService {
                 query.setName(restaurant.getName());
                 query.setLegalPerson(restaurant.getLegalPerson());
                 query.setTel(restaurant.getTel());
+//                query.setDeptId(restaurant.getDeptId());
                 List<Restaurant> restaurants = restaurantMapper.selectRestaurantList(query);
                 if (restaurants == null || restaurants.size() == 0) {
                     restaurant.setCreateBy(operName);

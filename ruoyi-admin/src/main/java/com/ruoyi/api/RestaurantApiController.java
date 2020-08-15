@@ -3,10 +3,7 @@ package com.ruoyi.api;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ruoyi.catering.domain.*;
-import com.ruoyi.catering.service.IDiningTypeService;
-import com.ruoyi.catering.service.IGasTypeService;
-import com.ruoyi.catering.service.IRestaurantService;
-import com.ruoyi.catering.service.IWarnMsgService;
+import com.ruoyi.catering.service.*;
 import com.ruoyi.catering.utils.BaseUtil;
 import com.ruoyi.catering.utils.BusinessUtil;
 import com.ruoyi.catering.vo.RestaurantVo;
@@ -35,9 +32,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.HtmlUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @program: catering
@@ -61,22 +56,121 @@ public class RestaurantApiController {
     private IWarnMsgService warnMsgService;
     @Autowired
     private ISysUserService userService;
+    @Autowired
+    private IRecoveryRecordService recoveryRecordService;
+    @Autowired
+    private ICheckRecordService checkRecordService;
 
     //商户列表
     @GetMapping(value = "/getListByUserId")
     public AjaxResult getListByUserId(Long userId) {
+//        long start = System.currentTimeMillis();
         SysUser sysUser = userService.selectUserById(userId);
         String sqlString = BaseUtil.dataScopeFilter(sysUser);
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, "");
+//        long end = System.currentTimeMillis();
+//        System.out.println("耗时:" + (end - start) + "ms");
         return AjaxResult.success(restaurants);
     }
 
     //模糊查询
     @GetMapping(value = "/fuzzyQuery")
-    public AjaxResult fuzzyQuery(Long userId, String name) {
+    public AjaxResult fuzzyQuery(Long userId, String name, String isRecovered, String isChecked, String isClosed) {
         SysUser sysUser = userService.selectUserById(userId);
         String sqlString = BaseUtil.dataScopeFilter(sysUser);
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, name);
+        if (StringUtils.isNotEmpty(isClosed) && isClosed.equals("Y")) {
+            List<Restaurant> restaurantList = new ArrayList<>();
+            for (Restaurant restaurant : restaurants) {
+                if (restaurant.getStatus() == 1) {
+                    restaurantList.add(restaurant);
+                }
+            }
+            return AjaxResult.success(restaurantList);
+        }
+        if (StringUtils.isNotEmpty(isRecovered) || StringUtils.isNotEmpty(isChecked)) {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.add(Calendar.DATE, -3);
+            Date smallDate = cal.getTime();
+            cal.add(Calendar.DATE, -3);
+            Date mediumDate = cal.getTime();
+            cal.add(Calendar.DATE, -3);
+            Date largeDate = cal.getTime();
+            String ids = "";
+            for (Restaurant restaurant : restaurants) {
+                ids += restaurant.getRestaurantId() + ",";
+            }
+            if (ids.length() > 0) {
+                ids = ids.substring(0, ids.length() - 1);
+            }
+            List<Restaurant> restaurantList = new ArrayList<>();
+            if (StringUtils.isNotEmpty(isRecovered) && isRecovered.equals("Y")) {
+                List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectListByRestaurantId(ids);
+                for (RecoveryRecord rr : recoveryRecords) {
+                    Restaurant r = restaurantService.selectRestaurantById(rr.getRestaurantId());
+                    int size = r.getSize();
+                    Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+                    if (rr.getRecoveryDate().after(date)) {
+                        restaurantList.add(r);
+                    }
+                }
+                return AjaxResult.success(restaurantList);
+            } else if (StringUtils.isNotEmpty(isRecovered) && isRecovered.equals("N")) {
+                List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectListByRestaurantId(ids);
+                List<Long> hasIds = new ArrayList<>();
+                for (RecoveryRecord rr : recoveryRecords) {
+                    Restaurant r = restaurantService.selectRestaurantById(rr.getRestaurantId());
+                    int size = r.getSize();
+                    Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+                    if (rr.getRecoveryDate().after(date)) {
+                        hasIds.add(rr.getRestaurantId());
+                    }
+                }
+                for (Restaurant restaurant : restaurants) {
+                    if (restaurant.getStatus() != null && restaurant.getStatus() == 1) {
+                        continue;
+                    }
+                    if (!hasIds.contains(restaurant.getRestaurantId())) {
+                        restaurantList.add(restaurant);
+                    }
+                }
+                return AjaxResult.success(restaurantList);
+            } else if (StringUtils.isNotEmpty(isChecked) && isChecked.equals("Y")) {
+                List<CheckRecord> checkRecords = checkRecordService.selectListByRestaurantId(ids);
+                for (CheckRecord cr : checkRecords) {
+                    Restaurant r = restaurantService.selectRestaurantById(cr.getRestaurantId());
+                    int size = r.getSize();
+                    Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+                    if (cr.getCheckDate().after(date)) {
+                        restaurantList.add(r);
+                    }
+                }
+                return AjaxResult.success(restaurantList);
+            } else if (StringUtils.isNotEmpty(isChecked) && isChecked.equals("N")) {
+                List<CheckRecord> checkRecords = checkRecordService.selectListByRestaurantId(ids);
+                List<Long> hasIds = new ArrayList<>();
+                for (CheckRecord cr : checkRecords) {
+                    Restaurant r = restaurantService.selectRestaurantById(cr.getRestaurantId());
+                    int size = r.getSize();
+                    Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+                    if (cr.getCheckDate().after(date)) {
+                        hasIds.add(cr.getRestaurantId());
+                    }
+                }
+                for (Restaurant restaurant : restaurants) {
+                    if (restaurant.getStatus() != null && restaurant.getStatus() == 1) {
+                        continue;
+                    }
+                    if (!hasIds.contains(restaurant.getRestaurantId())) {
+                        restaurantList.add(restaurant);
+                    }
+                }
+                return AjaxResult.success(restaurantList);
+            }
+        }
 //        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, name);
         return AjaxResult.success(restaurants);
     }

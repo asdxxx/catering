@@ -1,6 +1,7 @@
 package com.ruoyi.catering.vo;
 
 import com.ruoyi.catering.domain.MsgNotice;
+import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.system.domain.SysUser;
 import lombok.Data;
 
@@ -13,4 +14,6 @@ import lombok.Data;
 @Data
 public class MsgNoticeVo extends MsgNotice {
     private SysUser user;
+
+    private Restaurant restaurant;
 }

@@ -192,6 +192,16 @@ public class RestaurantApiController {
         return AjaxResult.success("修改成功");
     }
 
+    @RequestMapping(value = "/add")
+    //新增店铺信息
+    public AjaxResult add(Restaurant restaurant) {
+        int result = restaurantService.insertRestaurant(restaurant);
+        if (result <= 0) {
+            return AjaxResult.error("新增失败");
+        }
+        return AjaxResult.success("新增成功");
+    }
+
 //    @GetMapping(value = "/getListByName")
 //    //模糊查询餐馆列表
 //    public AjaxResult getListByName(String name) {

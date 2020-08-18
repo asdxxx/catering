@@ -6,6 +6,7 @@ import java.util.List;
 import com.github.pagehelper.PageInfo;
 import com.ruoyi.catering.domain.Feedback;
 import com.ruoyi.catering.domain.Restaurant;
+import com.ruoyi.catering.service.IRestaurantService;
 import com.ruoyi.catering.vo.FeedbackVo;
 import com.ruoyi.catering.vo.MsgNoticeVo;
 import com.ruoyi.common.utils.bean.BeanUtils;
@@ -50,6 +51,8 @@ public class MsgNoticeController extends BaseController {
     private ISysRoleService roleService;
     @Autowired
     private ISysUserService userService;
+    @Autowired
+    private IRestaurantService restaurantService;
 
     @RequiresPermissions("catering:msgNotice:view")
     @GetMapping()
@@ -182,6 +185,10 @@ public class MsgNoticeController extends BaseController {
         if (msgNotice.getUserId() != null) {
             SysUser user = userService.selectUserById(msgNotice.getUserId());
             msgNoticeVo.setUser(user);
+            if (msgNotice.getRestaurantId() != null) {
+                Restaurant restaurant = restaurantService.selectRestaurantById(msgNotice.getRestaurantId());
+                msgNoticeVo.setRestaurant(restaurant);
+            }
         }
         return msgNoticeVo;
     }

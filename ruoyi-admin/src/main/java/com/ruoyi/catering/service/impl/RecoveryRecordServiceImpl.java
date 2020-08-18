@@ -1,6 +1,7 @@
 package com.ruoyi.catering.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,4 +98,15 @@ public class RecoveryRecordServiceImpl implements IRecoveryRecordService {
     public List<RecoveryRecord> selectListByRestaurantId(String ids) {
         return recoveryRecordMapper.selectListByRestaurantId(Convert.toStrArray(ids));
     }
+
+    @Override
+    public double sumWeight(RecoveryRecord recoveryRecord) {
+        return recoveryRecordMapper.sumWeight(recoveryRecord);
+    }
+
+    @Override
+    public List<Map> getDailyData(RecoveryRecord recoveryRecord) {
+        return recoveryRecordMapper.getDailyData(recoveryRecord);
+    }
+
 }

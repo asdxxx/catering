@@ -4,8 +4,10 @@ import com.ruoyi.catering.domain.CheckRecord;
 import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.catering.service.ICheckRecordService;
+import com.ruoyi.catering.service.IRestaurantService;
 import com.ruoyi.catering.vo.CheckRecordVo;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysUserService;
@@ -38,9 +40,17 @@ public class CheckRecordApiController {
     private ICheckRecordService checkRecordService;
     @Autowired
     private ISysUserService userService;
+    @Autowired
+    private IRestaurantService restaurantService;
 
     @PostMapping(value = "save")
     public AjaxResult save(CheckRecord checkRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(checkRecord.getRestaurantId());
+        if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
+            restaurant.setLongitude(checkRecord.getLongitude());
+            restaurant.setLatitude(checkRecord.getLatitude());
+            restaurantService.updateRestaurant(restaurant);
+        }
         checkRecord.setCheckDate(new Date());
 //        checkRecord.setCreateBy(checkRecord.getUserId().toString());
         int result = checkRecordService.insertCheckRecord(checkRecord);

@@ -25,14 +25,16 @@
     </resultMap>
 
     <sql id="selectRecoveryRecordVo">
-        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img, recovery_date,
+        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img,
+        recovery_date,
         status, create_by,
         create_time, update_by, update_time, remark from cy_recovery_record
     </sql>
 
     <select id="selectRecoveryRecordList" parameterType="RecoveryRecord" resultMap="RecoveryRecordResult">
         <!--<include refid="selectRecoveryRecordVo"/>-->
-        select rr.id, rr.restaurant_id, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no, rr.garbage_id, rr.weight, rr.img,
+        select rr.id, rr.restaurant_id, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no, rr.garbage_id,
+        rr.weight, rr.img,
         rr.recovery_date,
         rr.status, rr.create_by, rr.create_time, rr.update_by, rr.update_time, rr.remark
         from cy_recovery_record rr
@@ -156,5 +158,48 @@
             #{restaurantId}
         </foreach>
         GROUP BY restaurant_id
+    </select>
+
+    <select id="sumWeight" parameterType="RecoveryRecord" resultType="double">
+        select sum(rr.weight)
+        from cy_recovery_record rr
+        left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
+        left join sys_dept d on r.dept_id = d.dept_id
+        left join sys_user u on rr.user_id = u.user_id
+        where 1=1
+        <if test="restaurantId != null ">and rr.restaurant_id = #{restaurantId}</if>
+        <if test="userId != null ">and rr.user_id = #{userId}</if>
+        <if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>
+        <if test="status != null ">and rr.status = #{status}</if>
+        <if test="params.restaurantName != null and params.restaurantName != ''">
+            and r.name like concat('%', #{params.restaurantName}, '%')
+        </if>
+        <if test="params.userName != null and params.userName != ''">
+            and u.user_name = #{params.userName}
+        </if>
+        <if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">
+            and rr.recovery_date >= #{params.beginRecoveryDate}
+        </if>
+        <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
+            and #{params.endRecoveryDate} >= rr.recovery_date
+        </if>
+        ${params.dataScope}
+    </select>
+
+    <select id="getDailyData" resultType="java.util.HashMap">
+        SELECT COUNT(1),DATE_FORMAT(recovery_date,'%Y-%m-%d') recovery_date
+        FROM cy_recovery_record rr
+        left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
+        left join sys_dept d on r.dept_id = d.dept_id
+        left join sys_user u on rr.user_id = u.user_id
+        where 1=1
+        <if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">
+            and rr.recovery_date >= #{params.beginRecoveryDate}
+        </if>
+        <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
+            and #{params.endRecoveryDate} >= rr.recovery_date
+        </if>
+        ${params.dataScope}
+        GROUP BY DATE_FORMAT(rr.recovery_date,'%Y-%m-%d')
     </select>
 </mapper>

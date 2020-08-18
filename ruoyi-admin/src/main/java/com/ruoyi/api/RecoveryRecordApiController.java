@@ -9,6 +9,7 @@ import com.ruoyi.catering.service.IRestaurantService;
 import com.ruoyi.catering.service.IWarnMsgService;
 import com.ruoyi.catering.vo.RecoveryRecordVo;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysUserService;
@@ -42,9 +43,17 @@ public class RecoveryRecordApiController {
     private ISysUserService userService;
     @Autowired
     private IGarbageService garbageService;
+    @Autowired
+    private IRestaurantService restaurantService;
 
     @PostMapping(value = "save")
     public AjaxResult save(RecoveryRecord recoveryRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+        if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
+            restaurant.setLongitude(recoveryRecord.getLongitude());
+            restaurant.setLatitude(recoveryRecord.getLatitude());
+            restaurantService.updateRestaurant(restaurant);
+        }
         recoveryRecord.setRecoveryDate(new Date());
         int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
         if (result <= 0) {

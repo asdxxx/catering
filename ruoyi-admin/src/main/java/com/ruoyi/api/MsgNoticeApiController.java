@@ -5,6 +5,8 @@ import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.service.IMsgNoticeService;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.system.domain.SysConfig;
+import com.ruoyi.system.service.ISysConfigService;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,8 @@ import java.util.List;
 public class MsgNoticeApiController extends BaseController {
     @Autowired
     private IMsgNoticeService msgNoticeService;
+    @Autowired
+    private ISysConfigService configService;
 
     @GetMapping(value = "/badgeNumber")
     public AjaxResult badgeNumber(Long userId) {
@@ -57,5 +61,13 @@ public class MsgNoticeApiController extends BaseController {
         msgNotice.setHasRead("Y");
         int result = msgNoticeService.updateMsgNotice(msgNotice);
         return toAjax(result);
+    }
+
+    @PostMapping(value = "remind")
+    public AjaxResult remind(Long restaurantId) {
+        String content = configService.selectConfigByKey("catering.msgNotice.template");
+        MsgNotice msgNotice = new MsgNotice();
+        msgNotice.setType(3);
+        return null;
     }
 }

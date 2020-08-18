@@ -1,8 +1,11 @@
 package com.ruoyi.catering.mapper;
 
+import java.lang.reflect.MalformedParameterizedTypeException;
 import java.util.List;
+import java.util.Map;
 
 import com.ruoyi.catering.domain.RecoveryRecord;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 回收记录Mapper接口
@@ -62,4 +65,9 @@ public interface RecoveryRecordMapper {
     public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
 
     public List<RecoveryRecord> selectListByRestaurantId(String[] ids);
+
+    public double sumWeight(RecoveryRecord recoveryRecord);
+
+    public List<Map> getDailyData(RecoveryRecord recoveryRecord);
+
 }

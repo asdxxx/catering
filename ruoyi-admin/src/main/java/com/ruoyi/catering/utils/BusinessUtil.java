@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @program: catering
@@ -99,6 +101,26 @@ public class BusinessUtil {
         return false;
     }
 
+    /**
+     * 自定义渲染模板
+     *
+     * @param template 模版
+     * @param params   参数
+     * @return
+     */
+    public static String processTemplate(String template, Map<String, Object> params) {
+        if (template == null || params == null)
+            return null;
+        StringBuffer sb = new StringBuffer();
+        Matcher m = Pattern.compile("\\$\\{\\w+\\}").matcher(template);
+        while (m.find()) {
+            String param = m.group();
+            Object value = params.get(param.substring(2, param.length() - 1));
+            m.appendReplacement(sb, value == null ? "" : value.toString());
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 //    //检测是否厨余和费油7天之后未收
 //    public static String isGetSumWeight(Restaurant restaurant) {
 //        if (restaurant.getHaskwoRecoveryAgreement() == null || restaurant.getHaskwoRecoveryAgreement() != 0) {

@@ -1,6 +1,8 @@
 package com.ruoyi.catering.mapper;
 
 import java.util.List;
+import java.util.Map;
+
 import com.ruoyi.catering.domain.CheckRecord;
 import com.ruoyi.catering.domain.RecoveryRecord;
 
@@ -61,5 +63,7 @@ public interface CheckRecordMapper
     public int deleteCheckRecordByIds(String[] recordIds);
 
     public List<CheckRecord> selectListByRestaurantId(String[] ids);
+
+    public List<Map> getDailyData(CheckRecord checkRecord);
 
 }

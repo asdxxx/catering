@@ -1,11 +1,13 @@
 package com.ruoyi.catering.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageInfo;
 import com.ruoyi.catering.domain.*;
 import com.ruoyi.catering.service.IDiningTypeService;
 import com.ruoyi.catering.service.IGasTypeService;
 import com.ruoyi.catering.service.IRegionService;
 import com.ruoyi.catering.service.IRestaurantService;
+import com.ruoyi.catering.vo.RestData;
 import com.ruoyi.catering.vo.RestaurantExportVo;
 import com.ruoyi.catering.vo.RestaurantImportData;
 import com.ruoyi.catering.vo.RestaurantVo;
@@ -414,4 +416,51 @@ public class RestaurantController extends BaseController {
 //        }
         return restaurantVo;
     }
+
+
+//    /**
+//     * 导入餐饮单位信息
+//     */
+//    @RequiresPermissions("catering:restaurant:import")
+//    @Log(title = "餐饮单位信息", businessType = BusinessType.IMPORT)
+//    @PostMapping("/importData")
+//    @ResponseBody
+//    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
+//        ExcelUtil<RestData> util = new ExcelUtil<RestData>(RestData.class);
+//        List<RestData> dataList = util.importExcel(file.getInputStream());
+//        String error = "";
+//        int successCount = 0;
+//        int errorCount = 0;
+//        for (RestData data : dataList) {
+//            if (!data.getRecoveryUser().equals("唐军")) {
+//                continue;
+//            }
+//            Restaurant restaurant = new Restaurant();
+//            restaurant.setDeptId(369l);
+//            restaurant.setName(data.getName());
+//            List<Restaurant> restaurants = restaurantService.selectRestaurantList(restaurant);
+//            if (restaurants == null || restaurants.size() != 1) {
+//                error += data.getName() + ",";
+//                errorCount++;
+//                continue;
+//            }
+//            restaurant = restaurants.get(0);
+//            restaurant.setDeptId(370l);
+//            int result = restaurantService.updateRestaurant(restaurant);
+//            if (result > 0) {
+//                successCount++;
+//            } else {
+//                error += data.getName() + ",";
+//                errorCount++;
+//            }
+//        }
+//
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("successCount", successCount);
+//        jsonObject.put("errorCount", errorCount);
+//        jsonObject.put("error", error);
+//        System.out.println(jsonObject.toJSONString());
+//        return AjaxResult.success(jsonObject);
+//    }
+
 }

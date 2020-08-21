@@ -1,27 +1,6 @@
 (function () {
-    let monthData = [
-        [
-            {
-                data: [23, 60, 20, 36, 23, 70, 20],
-            },
-            {
-                data: [50, 40, 10, 78, 53, 35, 80],
-            }
-        ], [
-            {
-                data: [50, 40, 10, 78, 53, 35, 80],
-            },
-            {
-                data: [23, 60, 20, 36, 23, 70, 20],
-            }
-        ]
-    ];
     var myChart = echarts.init(document.getElementById("main"));
     var option = {
-        // title: show,
-        // tooltip: {
-        //   trigger: "axis",
-        // },
         grid: {
             left: "10%",
             top: "30%",
@@ -36,14 +15,13 @@
             },
             backgroundColor: "none",
             formatter: function (params) {
-                return `<div style="background: url(./index/images/icon.png); width:100px;height:80px;position: relative"><p style="position: absolute; left: 38%; top: 35%; color: #fff; text-align: center; font-size: 16px;" >${+params[0].value + "人"
+                return `<div style="background: url(../index/images/icon.png); width:100px;height:80px;position: relative"><p style="position: absolute; left: 38%; top: 35%; color: #fff; text-align: center; font-size: 16px;" >${+params[0].value + "次"
                     }</p></div>`;
             },
             textStyle: {
                 color: "#000",
                 fontSize: 10,
             },
-            //   // triggerOn: "none",
         },
         xAxis: [
             {
@@ -70,7 +48,7 @@
         yAxis: [
             {
                 type: "value",
-                splitNumber: 4,
+                splitNumber: 5,
                 splitLine: {
                     lineStyle: {
                         type: "dashed",
@@ -96,9 +74,9 @@
         ],
         series: [
             {
-                name: "人",
+                name: "次",
                 type: "line",
-                data: [21, 50, 25, 34, 70, 45, 30],
+                data: [0, 0, 0, 0, 0, 0, 0],
                 lineStyle: {
                     normal: {
                         width: 5,
@@ -132,9 +110,9 @@
                 },
                 smooth: true,
             }, {
-                name: "人",
+                name: "次",
                 type: "line",
-                data: [10, 40, 65, 14, 10, 35, 30],
+                data: [0, 0, 0, 0, 0, 0, 0],
                 lineStyle: {
                     normal: {
                         width: 5,
@@ -175,28 +153,27 @@
     window.addEventListener("resize", function () {
         myChart.resize();
     });
-
     $(".line .btn").on("click", "a", function () {
         console.log($(this).index());
         console.log(monthData[$(this).index()])
         $(this).addClass("active");
         $(this).siblings().removeClass("active");
         let obj = monthData[$(this).index()];
-        option.series[0].data = obj[0].data;
-        option.series[1].data = obj[1].data;
+        option.xAxis[0].data = obj[0].data;
+        option.series[0].data = obj[1].data;
+        option.series[1].data = obj[2].data;
         myChart.setOption(option);
     });
+
 })();
 
 (function () {
     // 1. 实例化对象
     let myChart = echarts.init(document.getElementById("main1"));
-    //   var fontColor = "#fff";
-    //   let noramlSize = 16;
     var datas = [
         {
             name: "已完成",
-            value: 321690,
+            value: 0,
             company: "%",
             ringColor: [
                 {
@@ -211,21 +188,18 @@
         },
         {
             name: "未完成",
-            value: 610121,
+            value: 100,
         },
     ];
-    let sum = datas.reduce((a, b) = > {
-        return a + b.value * 1;
-},
-    0
-)
+    let sum = datas.reduce((a, b) => {
+            return a + b.value * 1;
+        },
+        0
+        )
     ;
-    //   alert(sum)
     let percent = [];
     for (let i = 0; i < datas.length; i++) {
-        // alert(datas[0].value)
         percent.push((datas[i].value / sum).toFixed(2) * 100);
-        // percent = ((datas[0].value / sum)).toFixed(2)
     }
 
     let option = {
@@ -248,7 +222,7 @@
 
         series: [
             {
-                name: "访问来源",
+                name: "收运情况",
                 type: "pie",
                 radius: ["50%", "70%"],
                 avoidLabelOverlap: false,
@@ -256,13 +230,6 @@
                     show: false,
                     position: "center",
                 },
-                // emphasis: {
-                //     label: {
-                //         show: true,
-                //         fontSize: '30',
-                //         fontWeight: 'bold'
-                //     }
-                // },
                 labelLine: {
                     show: false,
                 },

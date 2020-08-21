@@ -23,7 +23,8 @@
     </resultMap>
 
     <sql id="selectCheckRecordVo">
-        select record_id, user_id, restaurant_id, location, longitude, latitude, img, content, check_date, status, create_by,
+        select record_id, user_id, restaurant_id, location, longitude, latitude, img, content, check_date, status,
+        create_by,
         create_time, update_by, update_time, remark from cy_check_record
     </sql>
 
@@ -50,7 +51,7 @@
             and #{params.endCheckDate} >= cr.check_date
         </if>
         <!--<if test="params.beginCheckDate != null and params.beginCheckDate != '' and params.endCheckDate != null and params.endCheckDate != ''">-->
-            <!--and check_date between #{params.beginCheckDate} and #{params.endCheckDate}-->
+        <!--and check_date between #{params.beginCheckDate} and #{params.endCheckDate}-->
         <!--</if>-->
         ${params.dataScope}
     </select>
@@ -129,11 +130,38 @@
     </delete>
 
     <select id="selectListByRestaurantId" parameterType="String" resultMap="CheckRecordResult">
-        SELECT restaurant_id,MAX(check_date) check_date FROM cy_check_record
+        <!--SELECT restaurant_id,status,MAX(check_date) check_date FROM cy_check_record-->
+        <!--WHERE restaurant_id IN-->
+        <!--<foreach item="restaurantId" collection="array" open="(" separator="," close=")">-->
+        <!--#{restaurantId}-->
+        <!--</foreach>-->
+        <!--GROUP BY restaurant_id-->
+        SELECT * FROM cy_check_record AS cy
         WHERE restaurant_id IN
         <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
             #{restaurantId}
         </foreach>
-        GROUP BY restaurant_id
+        and NOT EXISTS
+        (SELECT 1 FROM cy_check_record
+        WHERE restaurant_id= cy.restaurant_id
+        AND check_date > cy.check_date
+        )
+    </select>
+
+    <select id="getDailyData" resultType="java.util.HashMap">
+        SELECT COUNT(1) count,DATE_FORMAT(check_date,'%Y-%m-%d') checkDate
+        FROM cy_check_record cr
+        left join cy_restaurant r on cr.restaurant_id = r.restaurant_id
+        left join sys_dept d on r.dept_id = d.dept_id
+        left join sys_user u on cr.user_id = u.user_id
+        where 1=1
+        <if test="params.beginCheckDate != null and params.beginCheckDate != ''">
+            and cr.check_date >= #{params.beginCheckDate}
+        </if>
+        <if test="params.endCheckDate != null and params.endCheckDate != ''">
+            and #{params.endCheckDate} >= cr.check_date
+        </if>
+        ${params.dataScope}
+        GROUP BY DATE_FORMAT(cr.check_date,'%Y-%m-%d')
     </select>
 </mapper>

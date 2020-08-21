@@ -5,6 +5,7 @@ import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.catering.service.IMsgNoticeService;
 import com.ruoyi.catering.service.IRestaurantService;
+import com.ruoyi.catering.utils.BusinessUtil;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.system.domain.SysConfig;
@@ -21,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @program: catering
@@ -74,17 +77,20 @@ public class MsgNoticeApiController extends BaseController {
 
     @PostMapping(value = "remind")
     public AjaxResult remind(Long userId, Long restaurantId) {
-        String content = configService.selectConfigByKey("catering.msgNotice.template");
+//        String content = configService.selectConfigByKey("catering.msgNotice.template");
         SysConfig config = new SysConfig();
         config.setConfigKey("catering.msgNotice.template");
         List<SysConfig> sysConfigs = configService.selectConfigList(config);
+        if (sysConfigs == null || sysConfigs.size() == 0) {
+            return AjaxResult.error("请联系管理员添加消息模板");
+        }
         config = sysConfigs.get(0);
         MsgNotice notice = new MsgNotice();
         notice.setRestaurantId(restaurantId);
         List<MsgNotice> msgNotices = msgNoticeService.selectMsgNoticeList(notice);
         if (msgNotices.size() > 0) {
             try {
-                if (new Date().getTime() - msgNotices.get(0).getCreateTime().getTime() < Integer.parseInt(config.getRemark())) {
+                if (new Date().getTime() - msgNotices.get(0).getCreateTime().getTime() < Integer.parseInt(config.getRemark()) * 1000) {
                     return AjaxResult.error("请勿频繁发送");
                 }
             } catch (Exception e) {
@@ -95,17 +101,19 @@ public class MsgNoticeApiController extends BaseController {
         msgNotice.setType(3);
         msgNotice.setUserId(userId);
         msgNotice.setRestaurantId(restaurantId);
-        if (content.contains("{回收人员}")) {
-            SysUser user = userService.selectUserById(userId);
-            content.replaceAll("{回收人员}", user.getUserName());
-        }
-        if (content.contains("{商户}")) {
-            Restaurant restaurant = restaurantService.selectRestaurantById(restaurantId);
-            content.replaceAll("{商户}", restaurant.getName());
-        }
-        msgNotice.setContent(content);
+        String content = config.getConfigValue();
+        SysUser user = userService.selectUserById(userId);
+        Restaurant restaurant = restaurantService.selectRestaurantById(restaurantId);
+        Map map = new HashMap();
+        map.put("user", user.getUserName());
+        map.put("store", restaurant.getName());
+        String c = BusinessUtil.processTemplate(content, map);
+        msgNotice.setContent(c);
         msgNotice.setHasRead("N");
-
-        return toAjax(msgNoticeService.insertMsgNotice(msgNotice));
+        int result = msgNoticeService.insertMsgNotice(msgNotice);
+        if (result > 0) {
+            return AjaxResult.success("提醒成功");
+        }
+        return AjaxResult.error("提醒失败");
     }
 }

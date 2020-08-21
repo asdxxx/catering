@@ -187,7 +187,7 @@
     </select>
 
     <select id="getDailyData" resultType="java.util.HashMap">
-        SELECT COUNT(1),DATE_FORMAT(recovery_date,'%Y-%m-%d') recovery_date
+        SELECT COUNT(1) count,DATE_FORMAT(recovery_date,'%Y-%m-%d') recoveryDate
         FROM cy_recovery_record rr
         left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
         left join sys_dept d on r.dept_id = d.dept_id

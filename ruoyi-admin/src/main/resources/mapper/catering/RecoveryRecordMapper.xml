@@ -15,6 +15,7 @@
         <result property="garbageId" column="garbage_id"/>
         <result property="weight" column="weight"/>
         <result property="img" column="img"/>
+        <result property="recycleImg" column="recycle_img"/>
         <result property="recoveryDate" column="recovery_date"/>
         <result property="status" column="status"/>
         <result property="createBy" column="create_by"/>
@@ -25,7 +26,7 @@
     </resultMap>
 
     <sql id="selectRecoveryRecordVo">
-        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img,
+        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img, recycle_img,
         recovery_date,
         status, create_by,
         create_time, update_by, update_time, remark from cy_recovery_record
@@ -34,7 +35,7 @@
     <select id="selectRecoveryRecordList" parameterType="RecoveryRecord" resultMap="RecoveryRecordResult">
         <!--<include refid="selectRecoveryRecordVo"/>-->
         select rr.id, rr.restaurant_id, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no, rr.garbage_id,
-        rr.weight, rr.img,
+        rr.weight, rr.img, recycle_img,
         rr.recovery_date,
         rr.status, rr.create_by, rr.create_time, rr.update_by, rr.update_time, rr.remark
         from cy_recovery_record rr
@@ -84,6 +85,7 @@
             <if test="garbageId != null">garbage_id,</if>
             <if test="weight != null">weight,</if>
             <if test="img != null">img,</if>
+            <if test="recycleImg != null">recycle_img,</if>
             <if test="recoveryDate != null">recovery_date,</if>
             <if test="status != null">status,</if>
             <if test="createBy != null">create_by,</if>
@@ -102,6 +104,7 @@
             <if test="garbageId != null">#{garbageId},</if>
             <if test="weight != null">#{weight},</if>
             <if test="img != null">#{img},</if>
+            <if test="recycleImg != null">#{recycleImg},</if>
             <if test="recoveryDate != null">#{recoveryDate},</if>
             <if test="status != null">#{status},</if>
             <if test="createBy != null">#{createBy},</if>
@@ -124,6 +127,7 @@
             <if test="garbageId != null">garbage_id = #{garbageId},</if>
             <if test="weight != null">weight = #{weight},</if>
             <if test="img != null">img = #{img},</if>
+            <if test="recycleImg != null">recycle_img = #{recycleImg},</if>
             <if test="recoveryDate != null">recovery_date = #{recoveryDate},</if>
             <if test="status != null">status = #{status},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
@@ -153,53 +157,109 @@
 
     <select id="selectListByRestaurantId" parameterType="String" resultMap="RecoveryRecordResult">
         SELECT restaurant_id,MAX(recovery_date) recovery_date FROM cy_recovery_record
-        WHERE restaurant_id IN
-        <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
-            #{restaurantId}
-        </foreach>
+        WHERE 1=1
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
+        </if>
         GROUP BY restaurant_id
     </select>
 
-    <select id="sumWeight" parameterType="RecoveryRecord" resultType="double">
-        select sum(rr.weight)
-        from cy_recovery_record rr
-        left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
-        left join sys_dept d on r.dept_id = d.dept_id
-        left join sys_user u on rr.user_id = u.user_id
+    <!--<select id="sumWeight" parameterType="RecoveryRecord" resultType="double">-->
+    <!--select IFNULL(sum(rr.weight),0)-->
+    <!--from cy_recovery_record rr-->
+    <!--left join cy_restaurant r on rr.restaurant_id = r.restaurant_id-->
+    <!--left join sys_dept d on r.dept_id = d.dept_id-->
+    <!--left join sys_user u on rr.user_id = u.user_id-->
+    <!--where 1=1-->
+    <!--<if test="restaurantId != null ">and rr.restaurant_id = #{restaurantId}</if>-->
+    <!--<if test="userId != null ">and rr.user_id = #{userId}</if>-->
+    <!--<if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>-->
+    <!--<if test="status != null ">and rr.status = #{status}</if>-->
+    <!--<if test="params.restaurantName != null and params.restaurantName != ''">-->
+    <!--and r.name like concat('%', #{params.restaurantName}, '%')-->
+    <!--</if>-->
+    <!--<if test="params.userName != null and params.userName != ''">-->
+    <!--and u.user_name = #{params.userName}-->
+    <!--</if>-->
+    <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">-->
+    <!--and rr.recovery_date >= #{params.beginRecoveryDate}-->
+    <!--</if>-->
+    <!--<if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
+    <!--and #{params.endRecoveryDate} >= rr.recovery_date-->
+    <!--</if>-->
+    <!--${params.dataScope}-->
+    <!--</select>-->
+
+    <!--<select id="getDailyData" resultType="java.util.HashMap">-->
+    <!--SELECT COUNT(1) count,DATE_FORMAT(recovery_date,'%Y-%m-%d') recoveryDate-->
+    <!--FROM cy_recovery_record rr-->
+    <!--left join cy_restaurant r on rr.restaurant_id = r.restaurant_id-->
+    <!--left join sys_dept d on r.dept_id = d.dept_id-->
+    <!--left join sys_user u on rr.user_id = u.user_id-->
+    <!--where 1=1-->
+    <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">-->
+    <!--and rr.recovery_date >= #{params.beginRecoveryDate}-->
+    <!--</if>-->
+    <!--<if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
+    <!--and #{params.endRecoveryDate} >= rr.recovery_date-->
+    <!--</if>-->
+    <!--${params.dataScope}-->
+    <!--GROUP BY DATE_FORMAT(rr.recovery_date,'%Y-%m-%d')-->
+    <!--</select>-->
+
+    <select id="sumWeight" resultType="double">
+        SELECT IFNULL(sum(weight),0) FROM cy_recovery_record
         where 1=1
-        <if test="restaurantId != null ">and rr.restaurant_id = #{restaurantId}</if>
-        <if test="userId != null ">and rr.user_id = #{userId}</if>
-        <if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>
-        <if test="status != null ">and rr.status = #{status}</if>
-        <if test="params.restaurantName != null and params.restaurantName != ''">
-            and r.name like concat('%', #{params.restaurantName}, '%')
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
         </if>
-        <if test="params.userName != null and params.userName != ''">
-            and u.user_name = #{params.userName}
+        <if test="recoveryRecord != null ">
+            <if test="recoveryRecord.garbageId != null ">and garbage_id = #{recoveryRecord.garbageId}</if>
+            <if test="recoveryRecord.params.beginRecoveryDate != null and recoveryRecord.params.beginRecoveryDate != ''">
+                and recovery_date >= #{recoveryRecord.params.beginRecoveryDate}
+            </if>
+            <if test="recoveryRecord.params.endRecoveryDate != null and recoveryRecord.params.endRecoveryDate != ''">
+                and #{recoveryRecord.params.endRecoveryDate} >= recovery_date
+            </if>
         </if>
-        <if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">
-            and rr.recovery_date >= #{params.beginRecoveryDate}
-        </if>
-        <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
-            and #{params.endRecoveryDate} >= rr.recovery_date
-        </if>
-        ${params.dataScope}
     </select>
 
     <select id="getDailyData" resultType="java.util.HashMap">
         SELECT COUNT(1) count,DATE_FORMAT(recovery_date,'%Y-%m-%d') recoveryDate
-        FROM cy_recovery_record rr
-        left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
-        left join sys_dept d on r.dept_id = d.dept_id
-        left join sys_user u on rr.user_id = u.user_id
+        FROM cy_recovery_record
         where 1=1
-        <if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">
-            and rr.recovery_date >= #{params.beginRecoveryDate}
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
         </if>
-        <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
-            and #{params.endRecoveryDate} >= rr.recovery_date
+        <if test="recoveryRecord != null ">
+            <if test="recoveryRecord.params.beginRecoveryDate != null and recoveryRecord.params.beginRecoveryDate != ''">
+                and recovery_date >= #{recoveryRecord.params.beginRecoveryDate}
+            </if>
+            <if test="recoveryRecord.params.endRecoveryDate != null and recoveryRecord.params.endRecoveryDate != ''">
+                and #{recoveryRecord.params.endRecoveryDate} >= recovery_date
+            </if>
         </if>
-        ${params.dataScope}
-        GROUP BY DATE_FORMAT(rr.recovery_date,'%Y-%m-%d')
+        GROUP BY DATE_FORMAT(recovery_date,'%Y-%m-%d')
+    </select>
+
+    <select id="selectNearlyList" resultMap="RecoveryRecordResult">
+        SELECT * FROM cy_recovery_record
+        WHERE 1=1
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
+        </if>
+        ORDER BY recovery_date DESC LIMIT 0,#{count}
     </select>
 </mapper>

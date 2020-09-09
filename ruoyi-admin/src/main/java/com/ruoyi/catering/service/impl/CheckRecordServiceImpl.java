@@ -97,7 +97,7 @@ public class CheckRecordServiceImpl implements ICheckRecordService {
     }
 
     @Override
-    public List<Map> getDailyData(CheckRecord checkRecord) {
-        return checkRecordMapper.getDailyData(checkRecord);
+    public List<Map> getDailyData(CheckRecord checkRecord, String restaurantIds) {
+        return checkRecordMapper.getDailyData(checkRecord, Convert.toStrArray(restaurantIds));
     }
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.ruoyi.catering.domain.CheckRecord;
 import com.ruoyi.catering.domain.RecoveryRecord;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 检查记录Mapper接口
@@ -62,8 +63,8 @@ public interface CheckRecordMapper
      */
     public int deleteCheckRecordByIds(String[] recordIds);
 
-    public List<CheckRecord> selectListByRestaurantId(String[] ids);
+    public List<CheckRecord> selectListByRestaurantId(@Param("restaurantIds") String[] restaurantIds);
 
-    public List<Map> getDailyData(CheckRecord checkRecord);
+    public List<Map> getDailyData(@Param("checkRecord") CheckRecord checkRecord, @Param("restaurantIds") String[] restaurantIds);
 
 }

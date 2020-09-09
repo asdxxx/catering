@@ -137,10 +137,13 @@
         <!--</foreach>-->
         <!--GROUP BY restaurant_id-->
         SELECT * FROM cy_check_record AS cy
-        WHERE restaurant_id IN
-        <foreach item="restaurantId" collection="array" open="(" separator="," close=")">
-            #{restaurantId}
-        </foreach>
+        WHERE 1=1
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
+        </if>
         and NOT EXISTS
         (SELECT 1 FROM cy_check_record
         WHERE restaurant_id= cy.restaurant_id
@@ -148,20 +151,41 @@
         )
     </select>
 
+    <!--<select id="getDailyData" resultType="java.util.HashMap">-->
+        <!--SELECT COUNT(1) count,DATE_FORMAT(check_date,'%Y-%m-%d') checkDate-->
+        <!--FROM cy_check_record cr-->
+        <!--left join cy_restaurant r on cr.restaurant_id = r.restaurant_id-->
+        <!--left join sys_dept d on r.dept_id = d.dept_id-->
+        <!--left join sys_user u on cr.user_id = u.user_id-->
+        <!--where 1=1-->
+        <!--<if test="params.beginCheckDate != null and params.beginCheckDate != ''">-->
+            <!--and cr.check_date >= #{params.beginCheckDate}-->
+        <!--</if>-->
+        <!--<if test="params.endCheckDate != null and params.endCheckDate != ''">-->
+            <!--and #{params.endCheckDate} >= cr.check_date-->
+        <!--</if>-->
+        <!--${params.dataScope}-->
+        <!--GROUP BY DATE_FORMAT(cr.check_date,'%Y-%m-%d')-->
+    <!--</select>-->
+
     <select id="getDailyData" resultType="java.util.HashMap">
         SELECT COUNT(1) count,DATE_FORMAT(check_date,'%Y-%m-%d') checkDate
-        FROM cy_check_record cr
-        left join cy_restaurant r on cr.restaurant_id = r.restaurant_id
-        left join sys_dept d on r.dept_id = d.dept_id
-        left join sys_user u on cr.user_id = u.user_id
+        FROM cy_check_record
         where 1=1
-        <if test="params.beginCheckDate != null and params.beginCheckDate != ''">
-            and cr.check_date >= #{params.beginCheckDate}
+        <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
+            and restaurant_id IN
+            <foreach item="restaurantId" collection="restaurantIds" open="(" separator="," close=")">
+                #{restaurantId}
+            </foreach>
         </if>
-        <if test="params.endCheckDate != null and params.endCheckDate != ''">
-            and #{params.endCheckDate} >= cr.check_date
+        <if test="checkRecord != null ">
+            <if test="checkRecord.params.beginCheckDate != null and checkRecord.params.beginCheckDate != ''">
+                and check_date >= #{checkRecord.params.beginCheckDate}
+            </if>
+            <if test="checkRecord.params.endCheckDate != null and checkRecord.params.endCheckDate != ''">
+                and #{checkRecord.params.endCheckDate} >= check_date
+            </if>
         </if>
-        ${params.dataScope}
-        GROUP BY DATE_FORMAT(cr.check_date,'%Y-%m-%d')
+        GROUP BY DATE_FORMAT(check_date,'%Y-%m-%d')
     </select>
 </mapper>

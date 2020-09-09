@@ -65,13 +65,15 @@ public class RecoveryRecord extends BaseEntity {
      * 回收重量
      */
     @Excel(name = "回收重量")
-    private Long weight;
+    private double weight;
 
     /**
      * 取证照片
      */
 //    @Excel(name = "取证照片")
     private String img;
+
+    private String recycleImg;
 
     /**
      * 回收日期
@@ -149,11 +151,11 @@ public class RecoveryRecord extends BaseEntity {
         return garbageId;
     }
 
-    public void setWeight(Long weight) {
+    public void setWeight(double weight) {
         this.weight = weight;
     }
 
-    public Long getWeight() {
+    public double getWeight() {
         return weight;
     }
 
@@ -163,6 +165,14 @@ public class RecoveryRecord extends BaseEntity {
 
     public String getImg() {
         return img;
+    }
+
+    public String getRecycleImg() {
+        return recycleImg;
+    }
+
+    public void setRecycleImg(String recycleImg) {
+        this.recycleImg = recycleImg;
     }
 
     public void setRecoveryDate(Date recoveryDate) {
@@ -194,6 +204,7 @@ public class RecoveryRecord extends BaseEntity {
                 .append("garbageId", getGarbageId())
                 .append("weight", getWeight())
                 .append("img", getImg())
+                .append("recycleImg", getRecycleImg())
                 .append("recoveryDate", getRecoveryDate())
                 .append("status", getStatus())
                 .append("createBy", getCreateBy())

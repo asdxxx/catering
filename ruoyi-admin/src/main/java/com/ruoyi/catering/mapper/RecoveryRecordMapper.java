@@ -64,10 +64,11 @@ public interface RecoveryRecordMapper {
 
     public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
 
-    public List<RecoveryRecord> selectListByRestaurantId(String[] ids);
+    public List<RecoveryRecord> selectListByRestaurantId(@Param("restaurantIds") String[] restaurantIds);
 
-    public double sumWeight(RecoveryRecord recoveryRecord);
+    public double sumWeight(@Param("recoveryRecord") RecoveryRecord recoveryRecord, @Param("restaurantIds") String[] restaurantIds);
 
-    public List<Map> getDailyData(RecoveryRecord recoveryRecord);
+    public List<Map> getDailyData(@Param("recoveryRecord") RecoveryRecord recoveryRecord, @Param("restaurantIds") String[] restaurantIds);
 
+    public List<RecoveryRecord> selectNearlyList(@Param("restaurantIds") String[] restaurantIds, @Param("count") int count);
 }

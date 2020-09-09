@@ -100,13 +100,18 @@ public class RecoveryRecordServiceImpl implements IRecoveryRecordService {
     }
 
     @Override
-    public double sumWeight(RecoveryRecord recoveryRecord) {
-        return recoveryRecordMapper.sumWeight(recoveryRecord);
+    public double sumWeight(RecoveryRecord recoveryRecord, String restaurantIds) {
+        return recoveryRecordMapper.sumWeight(recoveryRecord, Convert.toStrArray(restaurantIds));
     }
 
     @Override
-    public List<Map> getDailyData(RecoveryRecord recoveryRecord) {
-        return recoveryRecordMapper.getDailyData(recoveryRecord);
+    public List<Map> getDailyData(RecoveryRecord recoveryRecord, String restaurantIds) {
+        return recoveryRecordMapper.getDailyData(recoveryRecord, Convert.toStrArray(restaurantIds));
+    }
+
+    @Override
+    public List<RecoveryRecord> selectNearlyList(String restaurantIds, int count) {
+        return recoveryRecordMapper.selectNearlyList(Convert.toStrArray(restaurantIds), count);
     }
 
 }

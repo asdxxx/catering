@@ -8,6 +8,7 @@ import com.ruoyi.catering.service.IRecoveryRecordService;
 import com.ruoyi.catering.service.IRestaurantService;
 import com.ruoyi.catering.service.IWarnMsgService;
 import com.ruoyi.catering.vo.RecoveryRecordVo;
+import com.ruoyi.catering.vo.RecoveryReportData;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
@@ -46,20 +47,65 @@ public class RecoveryRecordApiController {
     @Autowired
     private IRestaurantService restaurantService;
 
+    //    @PostMapping(value = "save")
+//    public AjaxResult save(RecoveryRecord recoveryRecord) {
+//        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+//        if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
+//            restaurant.setLongitude(recoveryRecord.getLongitude());
+//            restaurant.setLatitude(recoveryRecord.getLatitude());
+//            restaurantService.updateRestaurant(restaurant);
+//        }
+//        if (recoveryRecord.getWeight() == null) {
+//            recoveryRecord.setWeight(0L);
+//        }
+//        recoveryRecord.setRecoveryDate(new Date());
+//        int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
+//        if (result <= 0) {
+//            return AjaxResult.error("上报失败");
+//        }
+//        return AjaxResult.success();
+//    }
     @PostMapping(value = "save")
-    public AjaxResult save(RecoveryRecord recoveryRecord) {
-        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+    public AjaxResult save(RecoveryReportData recoveryReportData) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryReportData.getRestaurantId());
         if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
-            restaurant.setLongitude(recoveryRecord.getLongitude());
-            restaurant.setLatitude(recoveryRecord.getLatitude());
+            restaurant.setLongitude(recoveryReportData.getLongitude());
+            restaurant.setLatitude(recoveryReportData.getLatitude());
             restaurantService.updateRestaurant(restaurant);
         }
-        recoveryRecord.setRecoveryDate(new Date());
-        int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
-        if (result <= 0) {
-            return AjaxResult.error("上报失败");
+        Integer count = recoveryReportData.getReportCount();
+        if (count == null || count <= 0) {
+            return AjaxResult.error("请上报数据");
         }
-        return AjaxResult.success();
+        if (count == 1) {
+            RecoveryRecord recoveryRecord = recoveryReportData.toRecoveryRecord();
+            if (recoveryRecord.getWeight() <= 0) {
+                return AjaxResult.error("上报数量不能为空");
+            }
+            recoveryRecord.setRecoveryDate(new Date());
+            int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
+            if (result <= 0) {
+                return AjaxResult.error("上报失败");
+            }
+        } else {
+            List<RecoveryRecord> recoveryRecordList = recoveryReportData.toRecoveryRecordList();
+            boolean flag = false;
+            for (RecoveryRecord rr : recoveryRecordList) {
+                if (rr.getWeight() <= 0) {
+                    continue;
+                }
+                flag = true;
+                rr.setRecoveryDate(new Date());
+                int result = recoveryRecordService.insertRecoveryRecord(rr);
+                if (result <= 0) {
+                    return AjaxResult.error("上报失败");
+                }
+            }
+            if (!flag) {
+                return AjaxResult.error("上报数量不能都为空");
+            }
+        }
+        return AjaxResult.success("上报成功");
     }
 
     //获取商户回收详情

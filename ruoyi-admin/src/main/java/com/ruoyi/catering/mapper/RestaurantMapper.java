@@ -67,4 +67,6 @@ public interface RestaurantMapper {
      * @return 餐饮单位信息
      */
     public List<Restaurant> canRecycle(@Param("sqlString") String sqlString, @Param("restaurantId") Long restaurantId, @Param("name") String name);
+
+    public int countByDeptId(Long deptId);
 }

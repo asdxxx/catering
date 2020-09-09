@@ -64,7 +64,12 @@ public interface IRecoveryRecordService {
 
     public List<RecoveryRecord> selectListByRestaurantId(String ids);
 
-    public double sumWeight(RecoveryRecord recoveryRecord);
+    //    public double sumWeight(RecoveryRecord recoveryRecord);
+    public double sumWeight(RecoveryRecord recoveryRecord, String restaurantIds);
 
-    public List<Map> getDailyData(RecoveryRecord recoveryRecord);
+
+    //    public List<Map> getDailyData(RecoveryRecord recoveryRecord);
+    public List<Map> getDailyData(RecoveryRecord recoveryRecord, String restaurantIds);
+
+    public List<RecoveryRecord> selectNearlyList(String restaurantIds, int count);
 }

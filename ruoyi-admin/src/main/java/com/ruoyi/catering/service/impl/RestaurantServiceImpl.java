@@ -1,5 +1,7 @@
 package com.ruoyi.catering.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.catering.mapper.RestaurantMapper;
 import com.ruoyi.catering.service.IRestaurantService;
@@ -162,5 +164,10 @@ public class RestaurantServiceImpl implements IRestaurantService {
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
+    }
+
+    @Override
+    public int countByDeptId(Long deptId) {
+        return restaurantMapper.countByDeptId(deptId);
     }
 }

@@ -254,4 +254,13 @@
         <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
         ${sqlString}
     </select>
+
+    <select id="countByDeptId" resultType="int">
+        SELECT COUNT(*) FROM cy_restaurant r
+        LEFT JOIN sys_dept d ON r.dept_id = d.dept_id
+        WHERE 1=1
+        AND (r.dept_id = #{deptId} OR r.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET
+        (#{deptId},ancestors) ))
+    </select>
+
 </mapper>

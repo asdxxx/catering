@@ -7,6 +7,13 @@
     <title>首页</title>
     <link href="../static/index/css/style.css" th:href="@{/index/css/style.css}" rel="stylesheet"/>
     <link href="../static/index/css/jquery-ui.css" th:href="@{/index/css/jquery-ui.css}" rel="stylesheet"/>
+    <link href="../static/layui/css/layui.css" th:href="@{/layui/css/layui.css}" rel="stylesheet"/>
+    <link href="../static/index/css/cascader.css" th:href="@{/index/css/cascader.css}" rel="stylesheet"/>
+    <style>
+        .layui-input-block{
+            margin-left: 0px;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,34 +25,36 @@
             </div>
             <div class="date">
                 <div>
-                    <label for="street" id="street">街道</label>
+                    <label for="street" id="street">所属区域</label>
+                </div>
+                <input type="hidden" id="deptId">
+                <div class="cascaderbox" id="cascaderbox">
+                    <div class="inputbox">
+                        <span class="arrdown"></span>
+                        <input autocomplete="off" class="searchtxt" type="text" placeholder="选择区域">
+                        <span class="labelshow"></span>
+                    </div>
+                    <div class="dlist hid"></div>
+                    <div class="dlist searchdlist hid"></div>
+                </div>
+
+                <!--<div class="layui-inline">-->
+                    <!--<label class="layui-form-label">日期范围</label>-->
+                    <!--<div class="layui-input-inline">-->
+                        <!--<input type="text" class="layui-input" id="test6" placeholder=" - ">-->
+                    <!--</div>-->
+                <!--</div>-->
+                <div class="layui-inline">
+                    <label class="layui-form-label">日期范围</label>
+                    <div class="layui-input-inline">
+                        <input type="text" class="layui-input-block" id="startTime" placeholder=""
+                               autocomplete="off"/>
+                        <span class="input-group-addon">到</span>
+                        <input type="text" class="layui-input-block" id="endTime" placeholder=""
+                               autocomplete="off"/>
+                    </div>
                 </div>
                 <div>
-                    <select id="change">
-                        <option value="" selected>全部街道</option>
-                        <option value="103">白石街道</option>
-                        <option value="104">北白象镇</option>
-                        <option value="茶山街道">茶山街道</option>
-                        <option value="郭溪街道">郭溪街道</option>
-                        <option value="泽雅镇">泽雅镇</option>
-                        <option value="新桥街道">新桥街道</option>
-                        <option value="娄桥街道">娄桥街道</option>
-                        <option value="丽岳街道">丽岳街道</option>
-                        <option value="梧田街道">梧田街道</option>
-                        <option value="仙岩街道">仙岩街道</option>
-                        <option value="南白象街道">南白象街道</option>
-                        <option value="三洋街道">三洋街道</option>
-                        <option value="景山街道">景山街道</option>
-                        <option value="覆溪街道">覆溪街道</option>
-                        <option value="潘桥街道">潘桥街道</option>
-                    </select>
-                </div>
-                <div>
-                    <!-- <label for="开始">开始</label>
-                    <input type="text" name="" id="start">
-                    <label>至</label>
-                    <input type="text" name="" id="end">
-                    <label for="结束">结束</label> -->
                     <button class="btns" onclick="indexData()">搜索</button>
                 </div>
             </div>
@@ -85,7 +94,7 @@
             </div>
             <div class="panle-group">
                 <div class="text">
-                    <p>已收运地沟油（吨）</p>
+                    <p>已收运地沟油（kg）</p>
                     <span id="gutterOilWeight">0</span>
 
                 </div>
@@ -93,7 +102,7 @@
             </div>
             <div class="panle-group">
                 <div class="text">
-                    <p>已收运老油（吨）</p>
+                    <p>已收运老油（kg）</p>
                     <span id="oldOilWeight">0</span>
 
                 </div>
@@ -175,11 +184,81 @@
 <script th:src="@{/index/js/jquery-ui.js}"></script>
 <script th:src="@{/index/js/jquery.SuperSlide.2.1.3.js}"></script>
 <script th:src="@{/index/js/index.js}"></script>
+<script th:src="@{/index/js/cascader.js}"></script>
+<script th:src="@{/layui/layui.js}"></script>
 <script>
     var ctx = [[@{/}]];
     var prefix = ctx + "catering/myindex";
     var monthData = [];
+
     $(document).ready(function () {
+        $.ajax({
+            url: prefix + "/deptArray",
+            method: "get",
+            dataType: "json",
+            success: function (res) {
+                console.log(res)
+                $('#cascaderbox').cascader({
+                    data: res,
+                    changeOnSelect: true, //选择即改变,可选择任意级
+                    selectFn: function (selectjson) { //selectFn回调函数
+                        console.log(JSON.stringify(selectjson)); //参数为最终选择的json数组
+                        $('#testJSON').html(JSON.stringify(selectjson));
+                        $("#deptId").val(selectjson.slice(selectjson.length - 1)[0].value)
+                        // console.log(selectjson.slice(selectjson.length-1)[0].value)
+                    }
+                });
+            }
+        });
+
+        <!-- laydate示例 -->
+        layui.use('laydate', function () {
+            var laydate = layui.laydate;
+
+            //日期范围
+            // laydate.render({
+            //     elem: '#test6'
+            //     , range: true
+            // });
+            var startDate = laydate.render({
+                elem: '#startTime',
+                max: $('#endTime').val(),
+                theme: 'molv',
+                trigger: 'click',
+                done: function (value, date) {
+                    // 结束时间大于开始时间
+                    if (value !== '') {
+                        endDate.config.min.year = date.year;
+                        endDate.config.min.month = date.month - 1;
+                        endDate.config.min.date = date.date;
+                    } else {
+                        endDate.config.min.year = '';
+                        endDate.config.min.month = '';
+                        endDate.config.min.date = '';
+                    }
+                }
+            });
+
+            var endDate = laydate.render({
+                elem: '#endTime',
+                min: $('#startTime').val(),
+                theme: 'molv',
+                trigger: 'click',
+                done: function (value, date) {
+                    // 开始时间小于结束时间
+                    if (value !== '') {
+                        startDate.config.max.year = date.year;
+                        startDate.config.max.month = date.month - 1;
+                        startDate.config.max.date = date.date;
+                    } else {
+                        startDate.config.max.year = '';
+                        startDate.config.max.month = '';
+                        startDate.config.max.date = '';
+                    }
+                }
+            });
+        });
+
         // 滚动
         $(".table").slide({
             mainCell: ".bottom",
@@ -192,6 +271,8 @@
     });
 
     function indexData() {
+        var startDate = $("#startTime").val();
+        var endDate = $("#endTime").val();
         var myChart = echarts.init(document.getElementById("main"));
         myChart.showLoading({
             text: '数据正在加载...',
@@ -206,13 +287,22 @@
             effectOption: {backgroundColor: 'rgba(0, 0, 0, 0)'}
         });
 
-        var deptId = $("#change option:selected").val()
+        var myChart3 = echarts.init(document.getElementById("main2"));
+        myChart3.showLoading({
+            text: '数据正在加载...',
+            textStyle: {fontSize: 30, color: '#444'},
+            effectOption: {backgroundColor: 'rgba(0, 0, 0, 0)'}
+        });
+
+        var deptId = $("#deptId").val()
         $.ajax({
             url: prefix + "/indexData",
             method: "post",
             dataType: "json",
             data: {
-                deptId: deptId
+                deptId: deptId,
+                startDate: startDate,
+                endDate: endDate
             },
             success: function (res) {
                 console.log(res)
@@ -229,6 +319,7 @@
                 $("#per1").text(((res.recoveredCount / sum) * 100).toFixed(2) + "%")
                 $("#per2").text(((res.unRecoveredCount / sum) * 100).toFixed(2) + "%")
 
+                $("#rrList").empty()
                 if (res.rrList.length) {
                     for (index in res.rrList) {
                         var recoveryRecord = res.rrList[index]
@@ -313,6 +404,23 @@
                     ],
                 });
                 myChart2.hideLoading();
+
+                myChart3.setOption({
+                    yAxis: [{
+                        data: res.deptList1
+                    }, {
+                        data: res.deptList2
+                    }],
+                    series: [
+                        {
+                            data: res.deptCountList,
+                        },
+                        {
+                            data: res.deptCountList2,
+                        },
+                    ],
+                });
+                myChart3.hideLoading();
             }
         })
     }
@@ -325,6 +433,11 @@
             return false;
         }
     }
+
+    function getLast(array, x) {
+        return array.slice(array.length - x)
+    }
+
 </script>
 </body>
 

@@ -272,11 +272,6 @@
     var myChart = echarts.init(document.getElementById("main2"));
 
     let option = {
-        // title: {
-        //     text: 'Anscombe\'s quartet',
-        //     left: 'center',
-        //     top: 0
-        // },
         grid: [
             {
                 x: "10%",
@@ -291,9 +286,6 @@
                 height: "70%",
             },
         ],
-        // tooltip: {
-        //     formatter: 'Group {a}: ({c})'
-        // },
         xAxis: [
             {
                 gridIndex: 0,
@@ -403,10 +395,6 @@
                             ]);
                         },
                         barBorderRadius: [30, 30, 30, 30], //圆角大小
-                        // shadowBlur: 10,
-                        // shadowColor: "rgba(0, 103, 255, 0.2)",
-                        // shadowOffsetX: -5,
-                        // shadowOffsetY: 5,
                     },
                 },
                 data: [
@@ -499,10 +487,6 @@
                             ]);
                         },
                         barBorderRadius: [30, 30, 30, 30], //圆角大小
-                        // shadowBlur: 10,
-                        // shadowColor: "rgba(0, 103, 255, 0.2)",
-                        // shadowOffsetX: -5,
-                        // shadowOffsetY: 5,
                     },
                 },
                 data: [

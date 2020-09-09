@@ -2,14 +2,18 @@ package com.ruoyi.api;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.PageHelper;
 import com.ruoyi.catering.domain.*;
 import com.ruoyi.catering.service.*;
 import com.ruoyi.catering.utils.BaseUtil;
 import com.ruoyi.catering.utils.BusinessUtil;
+import com.ruoyi.catering.utils.ListPageUtil;
 import com.ruoyi.catering.vo.RestaurantVo;
 import com.ruoyi.catering.vo.WarnMsgVo;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.sql.SqlUtil;
 import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.domain.SysUserRole;
@@ -75,9 +79,16 @@ public class RestaurantApiController {
 
     //模糊查询
     @GetMapping(value = "/fuzzyQuery")
-    public AjaxResult fuzzyQuery(Long userId, String name, String isRecovered, String isChecked, String isClosed) {
+    public AjaxResult fuzzyQuery(Long userId, String name, String isRecovered, String isChecked, String isClosed, PageDomain pageDomain) {
+        if (pageDomain.getPageNum() == null) {
+            pageDomain.setPageNum(1);
+        }
+        if (pageDomain.getPageSize() == null) {
+            pageDomain.setPageSize(10);
+        }
         SysUser sysUser = userService.selectUserById(userId);
         String sqlString = BaseUtil.dataScopeFilter(sysUser);
+
         List<Restaurant> restaurants = restaurantService.canRecycle(sqlString, null, name);
         if (StringUtils.isNotEmpty(isClosed) && isClosed.equals("Y")) {
             List<Restaurant> restaurantList = new ArrayList<>();
@@ -86,7 +97,10 @@ public class RestaurantApiController {
                     restaurantList.add(restaurant);
                 }
             }
-            return AjaxResult.success(restaurantList);
+            ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurantList, pageDomain.getPageNum(), pageDomain.getPageSize());
+            return AjaxResult.success(pageUtil);
+
+//            return AjaxResult.success(restaurantList);
         }
         if (StringUtils.isNotEmpty(isRecovered) || StringUtils.isNotEmpty(isChecked)) {
             Calendar cal = Calendar.getInstance();
@@ -117,7 +131,9 @@ public class RestaurantApiController {
                         restaurantList.add(r);
                     }
                 }
-                return AjaxResult.success(restaurantList);
+                ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurantList, pageDomain.getPageNum(), pageDomain.getPageSize());
+                return AjaxResult.success(pageUtil);
+//                return AjaxResult.success(restaurantList);
             } else if (StringUtils.isNotEmpty(isRecovered) && isRecovered.equals("N")) {
                 List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectListByRestaurantId(ids);
                 List<Long> hasIds = new ArrayList<>();
@@ -137,7 +153,9 @@ public class RestaurantApiController {
                         restaurantList.add(restaurant);
                     }
                 }
-                return AjaxResult.success(restaurantList);
+                ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurantList, pageDomain.getPageNum(), pageDomain.getPageSize());
+                return AjaxResult.success(pageUtil);
+//                return AjaxResult.success(restaurantList);
             } else if (StringUtils.isNotEmpty(isChecked) && isChecked.equals("Y")) {
                 List<CheckRecord> checkRecords = checkRecordService.selectListByRestaurantId(ids);
                 for (CheckRecord cr : checkRecords) {
@@ -148,7 +166,9 @@ public class RestaurantApiController {
                         restaurantList.add(r);
                     }
                 }
-                return AjaxResult.success(restaurantList);
+                ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurantList, pageDomain.getPageNum(), pageDomain.getPageSize());
+                return AjaxResult.success(pageUtil);
+//                return AjaxResult.success(restaurantList);
             } else if (StringUtils.isNotEmpty(isChecked) && isChecked.equals("N")) {
                 List<CheckRecord> checkRecords = checkRecordService.selectListByRestaurantId(ids);
                 List<Long> hasIds = new ArrayList<>();
@@ -168,11 +188,16 @@ public class RestaurantApiController {
                         restaurantList.add(restaurant);
                     }
                 }
-                return AjaxResult.success(restaurantList);
+                ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurantList, pageDomain.getPageNum(), pageDomain.getPageSize());
+                return AjaxResult.success(pageUtil);
+//                return AjaxResult.success(restaurantList);
             }
         }
 //        List<Restaurant> restaurants = restaurantService.canRecycle(userId, null, name);
-        return AjaxResult.success(restaurants);
+        ListPageUtil<Restaurant> pageUtil = new ListPageUtil<>(restaurants, pageDomain.getPageNum(), pageDomain.getPageSize());
+//        List<Restaurant> data = pageUtil.getData();
+        return AjaxResult.success(pageUtil);
+//        return AjaxResult.success(restaurants);
     }
 
     //根据商户id查询商户

@@ -123,7 +123,22 @@
                 },
                 {
                     field: 'img',
-                    title: '取证照片',
+                    title: '回收前照片',
+                    formatter: function (value, row, index) {
+                        var src = '';
+                        if (typeof value != "undefined" && value != null && value != "") {
+                            var photos = new Array();
+                            photos = value.split(",");
+                            for (i = 0; i < photos.length; i++) {
+                                src += $.table.imageView(photos[i], 600, 800, '');
+                            }
+                        }
+                        return src;
+                    }
+                },
+                {
+                    field: 'recycleImg',
+                    title: '回收后照片',
                     formatter: function (value, row, index) {
                         var src = '';
                         if (typeof value != "undefined" && value != null && value != "") {

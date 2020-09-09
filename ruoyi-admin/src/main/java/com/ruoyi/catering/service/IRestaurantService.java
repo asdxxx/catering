@@ -76,4 +76,6 @@ public interface IRestaurantService {
      * @return 餐饮单位信息
      */
     public List<Restaurant> canRecycle(String sqlString, Long restaurantId, String name);
+
+    public int countByDeptId(Long deptId);
 }

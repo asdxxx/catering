@@ -1,5 +1,7 @@
 package com.ruoyi.catering.controller;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +15,13 @@ import com.ruoyi.catering.vo.RecoveryRecordVo;
 import com.ruoyi.common.annotation.DataScope;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.framework.util.ShiroUtils;
+import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysRole;
 import com.ruoyi.system.domain.SysUser;
+import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -41,6 +46,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * @author lsy
  * @date 2020-07-23
  */
+@Slf4j
 @Controller
 @RequestMapping("/catering/checkRecord")
 public class CheckRecordController extends BaseController {
@@ -54,6 +60,8 @@ public class CheckRecordController extends BaseController {
     private ISysUserService userService;
     @Autowired
     private ISysRoleService roleService;
+    @Autowired
+    private ISysDeptService deptService;
 
     @RequiresPermissions("catering:checkRecord:view")
     @GetMapping()
@@ -87,6 +95,7 @@ public class CheckRecordController extends BaseController {
     /**
      * 导出检查记录列表
      */
+    @DataScope(deptAlias = "d")
     @RequiresPermissions("catering:checkRecord:export")
     @Log(title = "检查记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
@@ -94,7 +103,7 @@ public class CheckRecordController extends BaseController {
     public AjaxResult export(CheckRecord checkRecord) {
         List<CheckRecord> list = checkRecordService.selectCheckRecordList(checkRecord);
         List<CheckRecordVo> checkRecordVos = new ArrayList<>();
-        for(CheckRecord cr:list){
+        for (CheckRecord cr : list) {
             CheckRecordVo checkRecordVo = toVo(cr);
             checkRecordVos.add(checkRecordVo);
         }
@@ -118,6 +127,8 @@ public class CheckRecordController extends BaseController {
     @PostMapping("/add")
     @ResponseBody
     public AjaxResult addSave(CheckRecord checkRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(checkRecord.getRestaurantId());
+        checkRecord.setSize(restaurant.getSize());
         return toAjax(checkRecordService.insertCheckRecord(checkRecord));
     }
 
@@ -140,6 +151,8 @@ public class CheckRecordController extends BaseController {
     @PostMapping("/edit")
     @ResponseBody
     public AjaxResult editSave(CheckRecord checkRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(checkRecord.getRestaurantId());
+        checkRecord.setSize(restaurant.getSize());
         return toAjax(checkRecordService.updateCheckRecord(checkRecord));
     }
 
@@ -159,6 +172,10 @@ public class CheckRecordController extends BaseController {
         BeanUtils.copyProperties(checkRecord, checkRecordVo);
         Restaurant restaurant = restaurantService.selectRestaurantById(checkRecord.getRestaurantId());
         checkRecordVo.setRestaurant(restaurant);
+        if (restaurant != null) {
+            SysDept dept = deptService.selectDeptById(restaurant.getDeptId());
+            checkRecordVo.setDept(dept);
+        }
         SysUser user = userService.selectUserById(checkRecord.getUserId());
         checkRecordVo.setUser(user);
         return checkRecordVo;

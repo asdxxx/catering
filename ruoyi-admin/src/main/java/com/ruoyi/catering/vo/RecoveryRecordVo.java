@@ -4,6 +4,7 @@ import com.ruoyi.catering.domain.Garbage;
 import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.common.annotation.Excel;
+import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysUser;
 import lombok.Data;
 
@@ -23,4 +24,7 @@ public class RecoveryRecordVo extends RecoveryRecord {
 
     @Excel(name = "垃圾分类", targetAttr = "name", type = Excel.Type.EXPORT)
     private Garbage garbage;
+
+    @Excel(name = "所属区域", targetAttr = "deptName", type = Excel.Type.EXPORT)
+    private SysDept dept;
 }

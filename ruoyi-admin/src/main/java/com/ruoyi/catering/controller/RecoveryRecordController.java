@@ -17,8 +17,11 @@ import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.framework.util.ShiroUtils;
+import com.ruoyi.framework.web.domain.server.Sys;
+import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysRole;
 import com.ruoyi.system.domain.SysUser;
+import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -33,14 +36,13 @@ import java.util.List;
 
 /**
  * 回收记录Controller
- * 
+ *
  * @author lsy
  * @date 2020-07-08
  */
 @Controller
 @RequestMapping("/catering/recoveryRecord")
-public class RecoveryRecordController extends BaseController
-{
+public class RecoveryRecordController extends BaseController {
     private String prefix = "catering/recoveryRecord";
 
     @Autowired
@@ -53,12 +55,14 @@ public class RecoveryRecordController extends BaseController
     private IGarbageService garbageService;
     @Autowired
     private ISysRoleService roleService;
+    @Autowired
+    private ISysDeptService deptService;
 
     @RequiresPermissions("catering:recoveryRecord:view")
     @GetMapping()
-    public String recoveryRecord(Model model)
-    {
-        model.addAttribute("garbages",garbageService.selectGarbageList(new Garbage()));
+    public String recoveryRecord(Model model, Long restaurantId) {
+        model.addAttribute("garbages", garbageService.selectGarbageList(new Garbage()));
+        model.addAttribute("restaurantId", restaurantId);
         return prefix + "/recoveryRecord";
     }
 
@@ -70,8 +74,7 @@ public class RecoveryRecordController extends BaseController
     @RequiresPermissions("catering:recoveryRecord:list")
     @PostMapping("/list")
     @ResponseBody
-    public TableDataInfo list(RecoveryRecord recoveryRecord)
-    {
+    public TableDataInfo list(RecoveryRecord recoveryRecord) {
         startPage();
         List<RecoveryRecord> list = recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
         List<RecoveryRecordVo> recoveryRecordVos = new ArrayList<>();
@@ -90,30 +93,27 @@ public class RecoveryRecordController extends BaseController
     /**
      * 导出回收记录列表
      */
+    @DataScope(deptAlias = "d")
     @RequiresPermissions("catering:recoveryRecord:export")
     @Log(title = "回收记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     @ResponseBody
-    public AjaxResult export(RecoveryRecord recoveryRecord)
-    {
+    public AjaxResult export(RecoveryRecord recoveryRecord) {
         List<RecoveryRecord> list = recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
         List<RecoveryRecordVo> recoveryRecordVos = new ArrayList<>();
-        for(RecoveryRecord rr:list){
+        for (RecoveryRecord rr : list) {
             RecoveryRecordVo recoveryRecordVo = toVo(rr);
             recoveryRecordVos.add(recoveryRecordVo);
         }
         ExcelUtil<RecoveryRecordVo> util = new ExcelUtil<RecoveryRecordVo>(RecoveryRecordVo.class);
         return util.exportExcel(recoveryRecordVos, "回收记录");
-//        ExcelUtil<RecoveryRecord> util = new ExcelUtil<RecoveryRecord>(RecoveryRecord.class);
-//        return util.exportExcel(list, "recoveryRecord");
     }
 
     /**
      * 新增回收记录
      */
     @GetMapping("/add")
-    public String add(Model model)
-    {
+    public String add(Model model) {
         model.addAttribute("garbages", garbageService.selectGarbageList(new Garbage()));
         return prefix + "/add";
     }
@@ -125,8 +125,9 @@ public class RecoveryRecordController extends BaseController
     @Log(title = "回收记录", businessType = BusinessType.INSERT)
     @PostMapping("/add")
     @ResponseBody
-    public AjaxResult addSave(RecoveryRecord recoveryRecord)
-    {
+    public AjaxResult addSave(RecoveryRecord recoveryRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+        recoveryRecord.setSize(restaurant.getSize());
         return toAjax(recoveryRecordService.insertRecoveryRecord(recoveryRecord));
     }
 
@@ -134,8 +135,7 @@ public class RecoveryRecordController extends BaseController
      * 修改回收记录
      */
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable("id") Long id, ModelMap mmap)
-    {
+    public String edit(@PathVariable("id") Long id, ModelMap mmap) {
         RecoveryRecord recoveryRecord = recoveryRecordService.selectRecoveryRecordById(id);
         RecoveryRecordVo recoveryRecordVo = toVo(recoveryRecord);
         mmap.put("recoveryRecord", recoveryRecordVo);
@@ -150,8 +150,9 @@ public class RecoveryRecordController extends BaseController
     @Log(title = "回收记录", businessType = BusinessType.UPDATE)
     @PostMapping("/edit")
     @ResponseBody
-    public AjaxResult editSave(RecoveryRecord recoveryRecord)
-    {
+    public AjaxResult editSave(RecoveryRecord recoveryRecord) {
+        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+        recoveryRecord.setSize(restaurant.getSize());
         return toAjax(recoveryRecordService.updateRecoveryRecord(recoveryRecord));
     }
 
@@ -160,10 +161,9 @@ public class RecoveryRecordController extends BaseController
      */
     @RequiresPermissions("catering:recoveryRecord:remove")
     @Log(title = "回收记录", businessType = BusinessType.DELETE)
-    @PostMapping( "/remove")
+    @PostMapping("/remove")
     @ResponseBody
-    public AjaxResult remove(String ids)
-    {
+    public AjaxResult remove(String ids) {
         return toAjax(recoveryRecordService.deleteRecoveryRecordByIds(ids));
     }
 
@@ -172,6 +172,8 @@ public class RecoveryRecordController extends BaseController
         BeanUtils.copyProperties(recoveryRecord, recoveryRecordVo);
         Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
         recoveryRecordVo.setRestaurant(restaurant);
+        SysDept dept = deptService.selectDeptById(restaurant.getDeptId());
+        recoveryRecordVo.setDept(dept);
         SysUser user = userService.selectUserById(recoveryRecord.getUserId());
         recoveryRecordVo.setUser(user);
         Garbage garbage = garbageService.selectGarbageById(recoveryRecord.getGarbageId());

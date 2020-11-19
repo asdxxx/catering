@@ -438,6 +438,71 @@ var table = {
             		}
             	});
             },
+
+            // 下载模板
+            importTemplate2: function() {
+                table.set();
+                $.get(table.options.importTemplateUrl2, function(result) {
+                    if (result.code == web_status.SUCCESS) {
+                        window.location.href = ctx + "common/download?fileName=" + encodeURI(result.msg) + "&delete=" + true;
+                    } else if (result.code == web_status.WARNING) {
+                        $.modal.alertWarning(result.msg)
+                    } else {
+                        $.modal.alertError(result.msg);
+                    }
+                });
+            },
+            // 导入数据
+            importExcel2: function() {
+                table.set();
+                var currentId = 'importTpl2';
+                layer.open({
+                    type: 1,
+                    area: ['400px', '230px'],
+                    fix: false,
+                    //不固定
+                    maxmin: true,
+                    shade: 0.3,
+                    title: '导入' + table.options.modalName + '数据',
+                    content: $('#' + currentId).html(),
+                    btn: ['<i class="fa fa-check"></i> 导入', '<i class="fa fa-remove"></i> 取消'],
+                    // 弹层外区域关闭
+                    shadeClose: true,
+                    btn1: function(index, layero){
+                        var file = layero.find('#file2').val();
+                        if (file == '' || (!$.common.endWith(file, '.xls') && !$.common.endWith(file, '.xlsx'))){
+                            $.modal.msgWarning("请选择后缀为 “xls”或“xlsx”的文件。");
+                            return false;
+                        }
+                        var index = layer.load(2, {shade: false});
+                        $.modal.disable();
+                        var formData = new FormData(layero.find('form')[0]);
+                        $.ajax({
+                            url: table.options.importUrl2,
+                            data: formData,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            type: 'POST',
+                            success: function (result) {
+                                if (result.code == web_status.SUCCESS) {
+                                    $.modal.closeAll();
+                                    $.modal.alertSuccess(result.msg);
+                                    $.table.refresh();
+                                } else if (result.code == web_status.WARNING) {
+                                    layer.close(index);
+                                    $.modal.enable();
+                                    $.modal.alertWarning(result.msg)
+                                } else {
+                                    layer.close(index);
+                                    $.modal.enable();
+                                    $.modal.alertError(result.msg);
+                                }
+                            }
+                        });
+                    }
+                });
+            },
             // 刷新表格
             refresh: function(tableId) {
             	var currentId = $.common.isEmpty(tableId) ? table.options.id : tableId;
@@ -1397,10 +1462,10 @@ var table = {
     		            $.modal.msgError("不能选择根节点（" + nodes[i].name + "）");
     		            return false;
     		        }
-    		        if (nodes[i].isParent) {
-    		            $.modal.msgError("不能选择父节点（" + nodes[i].name + "）");
-    		            return false;
-    		        }
+    		        // if (nodes[i].isParent) {
+    		        //     $.modal.msgError("不能选择父节点（" + nodes[i].name + "）");
+    		        //     return false;
+    		        // }
     		    }
         		return true;
         	},

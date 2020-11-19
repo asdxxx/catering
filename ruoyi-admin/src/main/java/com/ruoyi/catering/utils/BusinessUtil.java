@@ -3,16 +3,13 @@ package com.ruoyi.catering.utils;
 import com.ruoyi.catering.domain.CheckRecord;
 import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.domain.Restaurant;
-import com.ruoyi.catering.domain.WarnMsg;
 import com.ruoyi.catering.service.ICheckRecordService;
 import com.ruoyi.catering.service.IRecoveryRecordService;
-import com.ruoyi.catering.service.IRestaurantService;
-import com.ruoyi.catering.service.IWarnMsgService;
+import com.ruoyi.catering.vo.CheckRecordVo;
 import com.ruoyi.common.utils.DateUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.ruoyi.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -31,8 +28,6 @@ public class BusinessUtil {
     private IRecoveryRecordService recoveryRecordService;
     @Autowired
     private ICheckRecordService checkRecordService;
-    @Autowired
-    private IWarnMsgService warnMsgService;
 
     private static BusinessUtil businessUtil;
 
@@ -41,6 +36,23 @@ public class BusinessUtil {
         businessUtil = this;
     }
 
+    public static boolean updateCoordinates(Restaurant restaurant, String longitude, String latitude) {
+        if (StringUtils.isNotEmpty(restaurant.getLongitude()) && StringUtils.isNotEmpty(restaurant.getLatitude())) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("[0-9]+[.]{0,1}[0-9]*[dD]{0,1}");
+        boolean isNum = pattern.matcher(longitude).matches();
+        if (!isNum) {
+            return false;
+        }
+        boolean isNum2 = pattern.matcher(latitude).matches();
+        if (!isNum2) {
+            return false;
+        }
+        return true;
+    }
+
+    //是否已回收
     public static boolean isRecovered(Restaurant restaurant) {
         RecoveryRecord recoveryRecord = new RecoveryRecord();
         recoveryRecord.setRestaurantId(restaurant.getRestaurantId());
@@ -62,8 +74,6 @@ public class BusinessUtil {
         Date date = cal.getTime();
         Map<String, Object> params = new HashMap<>();
         params.put("beginRecoveryDate", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD, date) + " 00:00:00");
-//        params.put("beginRecoveryDate", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
-//        params.put("endRecoveryDate", DateUtils.getTime());
         recoveryRecord.setParams(params);
         List<RecoveryRecord> recoveryRecords = businessUtil.recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
         if (recoveryRecords.size() > 0) {
@@ -72,6 +82,7 @@ public class BusinessUtil {
         return false;
     }
 
+    //是否已检查
     public static boolean isChecked(Restaurant restaurant) {
         CheckRecord checkRecord = new CheckRecord();
         checkRecord.setRestaurantId(restaurant.getRestaurantId());
@@ -101,6 +112,16 @@ public class BusinessUtil {
         return false;
     }
 
+    //是否合格
+    public static boolean isQualified(Long restaurantId) {
+        boolean flag = true;
+        CheckRecord checkRecord = businessUtil.checkRecordService.selectLastRecordByRestaurantId(restaurantId);
+        if (checkRecord != null && checkRecord.getStatus() != null && checkRecord.getStatus() == 1) {
+            flag = false;
+        }
+        return flag;
+    }
+
     /**
      * 自定义渲染模板
      *
@@ -121,61 +142,4 @@ public class BusinessUtil {
         m.appendTail(sb);
         return sb.toString();
     }
-//    //检测是否厨余和费油7天之后未收
-//    public static String isGetSumWeight(Restaurant restaurant) {
-//        if (restaurant.getHaskwoRecoveryAgreement() == null || restaurant.getHaskwoRecoveryAgreement() != 0) {
-//            return "blue";
-//        }
-//        RecoveryRecord recoveryRecord = new RecoveryRecord();
-//        recoveryRecord.setRestaurantId(restaurant.getRestaurantId());
-//        Calendar cal = Calendar.getInstance();
-//        if (restaurant.getDiningTypeId() == 1) {
-//            cal.add(Calendar.DATE, -7);
-//        } else {
-//            cal.add(Calendar.DATE, -15);
-//        }
-//        Date date = cal.getTime();
-//        Map<String, Object> params = new HashMap<>();
-//        params.put("beginRecoveryDate", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
-//        params.put("endRecoveryDate", DateUtils.getTime());
-//        recoveryRecord.setParams(params);
-//        List<RecoveryRecord> recoveryRecords = businessUtil.recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
-//        if (recoveryRecords.size() > 0) {
-//            return "blue";
-//        }
-//        return "red";
-//    }
-//
-//    //-------------------五色工具类------------------
-//    //1红色为不合格，2橙色为未检查，3黄色为整改中，4蓝色为合格，5灰色为暂停营业
-//    //信息是否齐全
-//    public static String isinfo(Restaurant restaurant) {
-//        if (restaurant.getHasDischargePermit() == null) {
-//            return "red";
-//        }
-//        if (restaurant.getHasFumeCleaner() == null) {
-//            return "red";
-//        }
-//        if (restaurant.getHaskwoRecoveryAgreement() == null) {
-//            return "red";
-//        }
-//        if (restaurant.getHasOilWaterSeparator() == null) {
-//            return "red";
-//        }
-//        return "blue";
-//    }
-//
-//    //是否被投诉
-//    public static String getWarning(Long restaurantId) {
-//        WarnMsg warnMsg = new WarnMsg();
-//        warnMsg.setType(3);
-//        warnMsg.setRestaurantId(restaurantId);
-//        warnMsg.setMsgType(3);
-//        warnMsg.setStatus(0);
-//        List<WarnMsg> warnMsgList = businessUtil.warnMsgService.selectWarnMsgList(warnMsg);
-//        if (warnMsgList != null && warnMsgList.size() > 0) {
-//            return "red";
-//        }
-//        return "blue";
-//    }
 }

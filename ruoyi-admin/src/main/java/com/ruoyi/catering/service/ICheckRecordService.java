@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.ruoyi.catering.domain.CheckRecord;
 import com.ruoyi.catering.domain.RecoveryRecord;
+import com.ruoyi.catering.vo.CheckRecordVo;
 
 /**
  * 检查记录Service接口
@@ -61,9 +62,28 @@ public interface ICheckRecordService {
      */
     public int deleteCheckRecordById(Long recordId);
 
+    /**
+     * 根据餐馆id查询最新的检查记录
+     *
+     * @param ids 餐馆ID集合
+     * @return 结果
+     */
     public List<CheckRecord> selectListByRestaurantId(String ids);
 
-    //    public List<Map> getDailyData(CheckRecord checkRecord);
+    /**
+     * 查询最近一个月每天的检查数据
+     *
+     * @param
+     * @return 结果
+     */
     public List<Map> getDailyData(CheckRecord checkRecord, String restaurantIds);
+
+    /**
+     * 根据餐馆id查询最新一条检查记录
+     *
+     * @param restaurantId 餐馆ID
+     * @return 检查记录
+     */
+    public CheckRecord selectLastRecordByRestaurantId(Long restaurantId);
 
 }

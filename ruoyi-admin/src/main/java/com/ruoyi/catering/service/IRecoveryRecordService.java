@@ -60,16 +60,43 @@ public interface IRecoveryRecordService {
      */
     public int deleteRecoveryRecordById(Long id);
 
-    public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
-
+    /**
+     * 根据餐馆ids查询最新的回收列表
+     *
+     * @param ids 餐馆ID集合
+     * @return 结果
+     */
     public List<RecoveryRecord> selectListByRestaurantId(String ids);
 
-    //    public double sumWeight(RecoveryRecord recoveryRecord);
+    /**
+     * 查询回收数量
+     *
+     * @param
+     * @return 结果
+     */
     public double sumWeight(RecoveryRecord recoveryRecord, String restaurantIds);
 
-
-    //    public List<Map> getDailyData(RecoveryRecord recoveryRecord);
+    /**
+     * 查询最近一个月每天的回收数据
+     *
+     * @param
+     * @return 结果
+     */
     public List<Map> getDailyData(RecoveryRecord recoveryRecord, String restaurantIds);
 
+    /**
+     * 根据餐馆ids查询最近的count条数据
+     *
+     * @param
+     * @return 结果
+     */
     public List<RecoveryRecord> selectNearlyList(String restaurantIds, int count);
+
+    /**
+     * 根据餐馆ID查询最新一条回收记录
+     *
+     * @param restaurantId 餐馆ID
+     * @return 结果
+     */
+    public RecoveryRecord selectLastRecoveryRecord(Long restaurantId);
 }

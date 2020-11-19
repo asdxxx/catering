@@ -1,10 +1,9 @@
 package com.ruoyi.catering.service.impl;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.catering.mapper.RestaurantMapper;
 import com.ruoyi.catering.service.IRestaurantService;
+import com.ruoyi.catering.data.RestaurantQueryData;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.exception.BusinessException;
 import com.ruoyi.common.utils.DateUtils;
@@ -169,5 +168,15 @@ public class RestaurantServiceImpl implements IRestaurantService {
     @Override
     public int countByDeptId(Long deptId) {
         return restaurantMapper.countByDeptId(deptId);
+    }
+
+    @Override
+    public int brandedCount(String restaurantIds) {
+        return restaurantMapper.brandedCount(Convert.toStrArray(restaurantIds));
+    }
+
+    @Override
+    public List<Restaurant> selectList(RestaurantQueryData restaurantQueryData) {
+        return restaurantMapper.selectList(restaurantQueryData);
     }
 }

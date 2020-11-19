@@ -9,9 +9,8 @@ ruoyi:
   # 实例演示开关
   demoEnabled: false
   # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  #  profile: /home/ruoyi/uploadPath
+#  profile: /data/cyimg/uploadPath
   profile: D:/cyimg/uploadPath
-  #profile: D:/apache-tomcat-8.5.57/webapps
   # 获取ip地址开关
   addressEnabled: true
 

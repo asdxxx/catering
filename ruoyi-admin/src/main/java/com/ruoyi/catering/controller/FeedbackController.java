@@ -91,8 +91,6 @@ public class FeedbackController extends BaseController {
         }
         ExcelUtil<FeedbackVo> util = new ExcelUtil<FeedbackVo>(FeedbackVo.class);
         return util.exportExcel(feedbackVos, "意见反馈");
-//        ExcelUtil<Feedback> util = new ExcelUtil<Feedback>(Feedback.class);
-//        return util.exportExcel(list, "feedback");
     }
 
     /**

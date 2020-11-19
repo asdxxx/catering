@@ -5,7 +5,7 @@ import lombok.Data;
 
 /**
  * @program: catering
- * @description:
+ * @description: 商户导出数据
  * @author: liu sheng yin
  * @create: 2020-08-05 14:40
  */
@@ -34,6 +34,12 @@ public class RestaurantExportVo {
      */
     @Excel(name = "类型", readConverterExp = "1=小型,2=中型,3=大型")
     private String size;
+
+    /**
+     * 商户性质
+     */
+    @Excel(name = "商户性质", readConverterExp = "1=普通,2=国企,3=事业单位,4=政府")
+    private String nature;
 
     /**
      * 运维人员

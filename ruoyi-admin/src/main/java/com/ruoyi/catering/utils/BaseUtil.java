@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.SysUser;
 
 /**
  * @program: catering
- * @description:
+ * @description: 根据当前用户获取查询sql
  * @author: liu sheng yin
  * @create: 2020-07-28 16:52
  */

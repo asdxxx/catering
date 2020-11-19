@@ -1,30 +1,35 @@
 package com.ruoyi.api;
 
+import com.github.pagehelper.PageInfo;
+import com.ruoyi.catering.data.PageData;
 import com.ruoyi.catering.domain.Garbage;
 import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.domain.Restaurant;
 import com.ruoyi.catering.service.IGarbageService;
 import com.ruoyi.catering.service.IRecoveryRecordService;
 import com.ruoyi.catering.service.IRestaurantService;
-import com.ruoyi.catering.service.IWarnMsgService;
+import com.ruoyi.catering.utils.BusinessUtil;
+import com.ruoyi.catering.utils.MyPageUtil;
+import com.ruoyi.catering.utils.RedisUtil;
 import com.ruoyi.catering.vo.RecoveryRecordVo;
-import com.ruoyi.catering.vo.RecoveryReportData;
+import com.ruoyi.catering.data.RecoveryReportData;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysUserService;
 import io.swagger.annotations.Api;
-import io.swagger.models.auth.In;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.GeoCoordinate;
+import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.util.*;
 
 /**
  * @program: catering
@@ -36,7 +41,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/recoveryRecord")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@Api(value = "接口对接", tags = {"接口对接"})
+@Api(value = "回收记录接口")
 public class RecoveryRecordApiController {
     @Autowired
     private IRecoveryRecordService recoveryRecordService;
@@ -47,31 +52,25 @@ public class RecoveryRecordApiController {
     @Autowired
     private IRestaurantService restaurantService;
 
-    //    @PostMapping(value = "save")
-//    public AjaxResult save(RecoveryRecord recoveryRecord) {
-//        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
-//        if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
-//            restaurant.setLongitude(recoveryRecord.getLongitude());
-//            restaurant.setLatitude(recoveryRecord.getLatitude());
-//            restaurantService.updateRestaurant(restaurant);
-//        }
-//        if (recoveryRecord.getWeight() == null) {
-//            recoveryRecord.setWeight(0L);
-//        }
-//        recoveryRecord.setRecoveryDate(new Date());
-//        int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
-//        if (result <= 0) {
-//            return AjaxResult.error("上报失败");
-//        }
-//        return AjaxResult.success();
-//    }
+    @ApiOperation("回收上报")
     @PostMapping(value = "save")
     public AjaxResult save(RecoveryReportData recoveryReportData) {
         Restaurant restaurant = restaurantService.selectRestaurantById(recoveryReportData.getRestaurantId());
-        if (restaurant != null && (StringUtils.isEmpty(restaurant.getLongitude()) || StringUtils.isEmpty(restaurant.getLatitude()))) {
-            restaurant.setLongitude(recoveryReportData.getLongitude());
-            restaurant.setLatitude(recoveryReportData.getLatitude());
+        if (restaurant == null) {
+            return AjaxResult.error("未查询到餐馆信息");
+        }
+        if (BusinessUtil.updateCoordinates(restaurant, recoveryReportData.getLongitude(), recoveryReportData.getLatitude())) {
+            DecimalFormat df = new DecimalFormat("0.000000");
+            restaurant.setLongitude(df.format(Double.parseDouble(recoveryReportData.getLongitude())));
+            restaurant.setLatitude(df.format(Double.parseDouble(recoveryReportData.getLatitude())));
             restaurantService.updateRestaurant(restaurant);
+
+            Jedis redis = RedisUtil.getJedis();
+            String memberName = restaurant.getRestaurantId() + "";
+            GeoCoordinate geoCoordinate = new GeoCoordinate(Long.parseLong(restaurant.getLongitude()), Long.parseLong(restaurant.getLatitude()));
+            Map add = new HashMap();
+            add.put(memberName, geoCoordinate);
+            redis.geoadd("restaurant", add);
         }
         Integer count = recoveryReportData.getReportCount();
         if (count == null || count <= 0) {
@@ -83,6 +82,7 @@ public class RecoveryRecordApiController {
                 return AjaxResult.error("上报数量不能为空");
             }
             recoveryRecord.setRecoveryDate(new Date());
+            recoveryRecord.setSize(restaurant.getSize());
             int result = recoveryRecordService.insertRecoveryRecord(recoveryRecord);
             if (result <= 0) {
                 return AjaxResult.error("上报失败");
@@ -96,6 +96,7 @@ public class RecoveryRecordApiController {
                 }
                 flag = true;
                 rr.setRecoveryDate(new Date());
+                rr.setSize(restaurant.getSize());
                 int result = recoveryRecordService.insertRecoveryRecord(rr);
                 if (result <= 0) {
                     return AjaxResult.error("上报失败");
@@ -108,7 +109,7 @@ public class RecoveryRecordApiController {
         return AjaxResult.success("上报成功");
     }
 
-    //获取商户回收详情
+    @ApiOperation("获取商户回收列表")
     @GetMapping(value = "/getListByRestaurantId")
     public AjaxResult getListByRestaurantId(Long restaurantId) {
         RecoveryRecord recoveryRecord = new RecoveryRecord();
@@ -126,28 +127,48 @@ public class RecoveryRecordApiController {
         }
         return AjaxResult.success(recoveryRecordVos);
     }
-//    @GetMapping(value = "/toBeConfirmedList")
-//    //根据餐馆id获取回收列表
-//    public AjaxResult toBeConfirmedList(Long restaurantId) {
-//        RecoveryRecord recoveryRecord = new RecoveryRecord();
-//        recoveryRecord.setRestaurantId(restaurantId);
-//        recoveryRecord.setStatus(1);
-//        List<RecoveryRecord> list = recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
-//        List<RecoveryRecordVo> rrvList = new ArrayList<>();
-//        for (RecoveryRecord rr : list) {
-//            RecoveryRecordVo recoveryRecordVo = new RecoveryRecordVo();
-//            BeanUtils.copyProperties(rr, recoveryRecordVo);
-//            SysUser user = userService.selectUserById(rr.getUserId());
-//            recoveryRecordVo.setUser(user);
-//            rrvList.add(recoveryRecordVo);
-//        }
-//        return AjaxResult.success(rrvList);
-//    }
-//
-//    @RequestMapping(value = "/update")
-//    //回收记录状态确认
-//    public AjaxResult update(RecoveryRecord recoveryRecord) {
-//        recoveryRecordService.updateRecoveryRecord(recoveryRecord);
-//        return AjaxResult.success("状态更新成功");
-//    }
+
+    @ApiOperation("获取回收列表")
+    @GetMapping(value = "/queryList")
+    public AjaxResult queryList(Long restaurantId) {
+        PageDomain pageDomain = MyPageUtil.startPage();
+        RecoveryRecord recoveryRecord = new RecoveryRecord();
+        recoveryRecord.setRestaurantId(restaurantId);
+        Map<String, Object> params = new HashMap<>();
+        if (StringUtils.isEmpty(pageDomain.getOrderBy())) {
+            params.put("dataScope", "order by recovery_date desc");
+        }
+        recoveryRecord.setParams(params);
+        List<RecoveryRecord> recoveryRecordList = recoveryRecordService.selectRecoveryRecordList(recoveryRecord);
+        List<RecoveryRecordVo> recoveryRecordVos = new ArrayList<>();
+        for (RecoveryRecord rr : recoveryRecordList) {
+            RecoveryRecordVo recoveryRecordVo = new RecoveryRecordVo();
+            BeanUtils.copyProperties(rr, recoveryRecordVo);
+            SysUser user = userService.selectUserById(rr.getUserId());
+            recoveryRecordVo.setUser(user);
+            Garbage garbage = garbageService.selectGarbageById(rr.getGarbageId());
+            recoveryRecordVo.setGarbage(garbage);
+            Restaurant restaurant = restaurantService.selectRestaurantById(rr.getRestaurantId());
+            recoveryRecordVo.setRestaurant(restaurant);
+            recoveryRecordVos.add(recoveryRecordVo);
+        }
+        PageData pageData = new PageData(recoveryRecordVos, pageDomain.getPageNum(), pageDomain.getPageSize(), (int) new PageInfo(recoveryRecordList).getTotal());
+        return AjaxResult.success(pageData);
+    }
+
+    @ApiOperation("获取回收详情")
+    @CrossOrigin
+    @GetMapping(value = "/detailById")
+    public AjaxResult detailById(Long recordId) {
+        RecoveryRecord recoveryRecord = recoveryRecordService.selectRecoveryRecordById(recordId);
+        RecoveryRecordVo recoveryRecordVo = new RecoveryRecordVo();
+        BeanUtils.copyProperties(recoveryRecord, recoveryRecordVo);
+        SysUser user = userService.selectUserById(recoveryRecord.getUserId());
+        recoveryRecordVo.setUser(user);
+        Garbage garbage = garbageService.selectGarbageById(recoveryRecord.getGarbageId());
+        recoveryRecordVo.setGarbage(garbage);
+        Restaurant restaurant = restaurantService.selectRestaurantById(recoveryRecord.getRestaurantId());
+        recoveryRecordVo.setRestaurant(restaurant);
+        return AjaxResult.success(recoveryRecordVo);
+    }
 }

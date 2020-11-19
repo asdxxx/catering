@@ -10,7 +10,7 @@
     <link href="../static/layui/css/layui.css" th:href="@{/layui/css/layui.css}" rel="stylesheet"/>
     <link href="../static/index/css/cascader.css" th:href="@{/index/css/cascader.css}" rel="stylesheet"/>
     <style>
-        .layui-input-block{
+        .layui-input-block {
             margin-left: 0px;
         }
     </style>
@@ -21,7 +21,8 @@
     <div class="container">
         <div class="title">
             <div class="total">
-                <span>工作统计</span>
+                <!--<span>工作统计     当前贴牌<b id="brandedCount">0</b>家</span>-->
+                <span>统计:当前已贴牌<b id="brandedCount">0</b>家商户，周期内检查<b id="checkedCount">0</b>家，周期内已收运<b id="recoveredCount">0</b>家</span>
             </div>
             <div class="date">
                 <div>
@@ -39,10 +40,10 @@
                 </div>
 
                 <!--<div class="layui-inline">-->
-                    <!--<label class="layui-form-label">日期范围</label>-->
-                    <!--<div class="layui-input-inline">-->
-                        <!--<input type="text" class="layui-input" id="test6" placeholder=" - ">-->
-                    <!--</div>-->
+                <!--<label class="layui-form-label">日期范围</label>-->
+                <!--<div class="layui-input-inline">-->
+                <!--<input type="text" class="layui-input" id="test6" placeholder=" - ">-->
+                <!--</div>-->
                 <!--</div>-->
                 <div class="layui-inline">
                     <label class="layui-form-label">日期范围</label>
@@ -71,7 +72,7 @@
             <div class="panle-group">
                 <div class="text">
                     <p>已收运商户（户）</p>
-                    <span id="recoveredCount">0</span>
+                    <span id="totalRecoveredCount">0</span>
 
                 </div>
                 <img th:src="@{/index/images/item2.png}" alt="">
@@ -79,7 +80,7 @@
             <div class="panle-group">
                 <div class="text">
                     <p>已检查商户（户）</p>
-                    <span id="checkedCount">0</span>
+                    <span id="totalCheckedCount">0</span>
 
                 </div>
                 <img th:src="@{/index/images/item3.png}" alt="">
@@ -306,9 +307,12 @@
             },
             success: function (res) {
                 console.log(res)
+                $("#brandedCount").text(res.brandedCount)
                 $("#restaurantCount").text(res.restaurantCount)
                 $("#recoveredCount").text(res.recoveredCount)
                 $("#checkedCount").text(res.checkedCount)
+                $("#totalRecoveredCount").text(res.totalRecoveredCount)
+                $("#totalCheckedCount").text(res.totalCheckedCount)
                 $("#unqualifiedCount").text(res.unqualifiedCount)
                 $("#gutterOilWeight").text(res.gutterOilWeight)
                 $("#oldOilWeight").text(res.oldOilWeight)
@@ -395,9 +399,31 @@
                             data: [
                                 {
                                     value: res.recoveredCount,
+                                    itemStyle: {
+                                        normal: {
+                                            color: 'rgb(81,204,255)',
+                                            label: {
+                                                show: false,
+                                            },
+                                            labelLine: {
+                                                show: false,
+                                            },
+                                        },
+                                    },
                                 },
                                 {
                                     value: res.unRecoveredCount,
+                                    itemStyle: {
+                                        normal: {
+                                            color: '#f0f0f0',
+                                            label: {
+                                                show: false,
+                                            },
+                                            labelLine: {
+                                                show: false,
+                                            },
+                                        },
+                                    },
                                 },
                             ],
                         },

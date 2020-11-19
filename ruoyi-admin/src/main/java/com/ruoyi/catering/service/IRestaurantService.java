@@ -1,6 +1,7 @@
 package com.ruoyi.catering.service;
 
 import com.ruoyi.catering.domain.Restaurant;
+import com.ruoyi.catering.data.RestaurantQueryData;
 
 import java.util.List;
 
@@ -70,12 +71,34 @@ public interface IRestaurantService {
     public String importRestaurantList(List<Restaurant> restaurantList, Boolean isUpdateSupport, String operName);
 
     /**
-     * 查询餐馆是否有权回收
+     * 查询餐馆列表
      *
-     * @param restaurantId 餐饮单位信息ID
+     * @param
      * @return 餐饮单位信息
      */
     public List<Restaurant> canRecycle(String sqlString, Long restaurantId, String name);
 
+    /**
+     * 根据区域id查询餐馆数量
+     *
+     * @param deptId 区域id
+     * @return 餐饮单位信息
+     */
     public int countByDeptId(Long deptId);
+
+    /**
+     * 查询贴牌数量
+     *
+     * @param
+     * @return 贴牌数
+     */
+    public int brandedCount(String restaurantIds);
+
+    /**
+     * 查询餐馆列表
+     *
+     * @param
+     * @return 餐饮单位信息
+     */
+    public List<Restaurant> selectList(RestaurantQueryData restaurantQueryData);
 }

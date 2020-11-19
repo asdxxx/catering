@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ruoyi.catering.domain.RecoveryRecord;
+import com.ruoyi.catering.vo.CheckRecordVo;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,5 +100,10 @@ public class CheckRecordServiceImpl implements ICheckRecordService {
     @Override
     public List<Map> getDailyData(CheckRecord checkRecord, String restaurantIds) {
         return checkRecordMapper.getDailyData(checkRecord, Convert.toStrArray(restaurantIds));
+    }
+
+    @Override
+    public CheckRecord selectLastRecordByRestaurantId(Long restaurantId) {
+        return checkRecordMapper.selectLastRecordByRestaurantId(restaurantId);
     }
 }

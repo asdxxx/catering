@@ -15,7 +15,7 @@
             },
             backgroundColor: "none",
             formatter: function (params) {
-                return `<div style="background: url(../index/images/icon.png); width:100px;height:80px;position: relative"><p style="position: absolute; left: 38%; top: 35%; color: #fff; text-align: center; font-size: 16px;" >${+params[0].value + "次"
+                return `<div style="background: url(../index/images/icon.png); width:100px;height:80px;position: relative"><p style="position: absolute; left: 18%; top: 25%; color: #fff; text-align: center; font-size: 12px;" >${'收运：' + params[0].value + "次" + '</br>' +'检查：' +  params[1].value + "次"
                     }</p></div>`;
             },
             textStyle: {
@@ -240,10 +240,7 @@
                         name: "已完成普查数",
                         itemStyle: {
                             normal: {
-                                color: {
-                                    // 完成的圆环的颜色
-                                    colorStops: datas[0].ringColor,
-                                },
+                                color: 'blue',
                                 label: {
                                     show: false,
                                 },
@@ -256,6 +253,17 @@
                     {
                         name: "未完成普查数",
                         value: datas[1].value,
+                        itemStyle: {
+                            normal: {
+                                color: 'green',
+                                label: {
+                                    show: false,
+                                },
+                                labelLine: {
+                                    show: false,
+                                },
+                            },
+                        },
                     },
                 ],
             },

@@ -7,6 +7,7 @@
     <resultMap type="RecoveryRecord" id="RecoveryRecordResult">
         <result property="id" column="id"/>
         <result property="restaurantId" column="restaurant_id"/>
+        <result property="size" column="size"/>
         <result property="location" column="location"/>
         <result property="longitude" column="longitude"/>
         <result property="latitude" column="latitude"/>
@@ -26,7 +27,8 @@
     </resultMap>
 
     <sql id="selectRecoveryRecordVo">
-        select id, restaurant_id, location, longitude, latitude, user_id, car_no, garbage_id, weight, img, recycle_img,
+        select id, restaurant_id, size, location, longitude, latitude, user_id, car_no, garbage_id, weight, img,
+        recycle_img,
         recovery_date,
         status, create_by,
         create_time, update_by, update_time, remark from cy_recovery_record
@@ -34,13 +36,12 @@
 
     <select id="selectRecoveryRecordList" parameterType="RecoveryRecord" resultMap="RecoveryRecordResult">
         <!--<include refid="selectRecoveryRecordVo"/>-->
-        select rr.id, rr.restaurant_id, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no, rr.garbage_id,
+        select rr.id, rr.restaurant_id, rr.size, rr.location, rr.longitude, rr.latitude, rr.user_id, rr.car_no,
+        rr.garbage_id,
         rr.weight, rr.img, recycle_img,
         rr.recovery_date,
         rr.status, rr.create_by, rr.create_time, rr.update_by, rr.update_time, rr.remark
         from cy_recovery_record rr
-        <!--left join sys_user u on rr.user_id = u.user_id-->
-        <!--left join sys_dept d on u.dept_id = d.dept_id-->
         left join cy_restaurant r on rr.restaurant_id = r.restaurant_id
         left join sys_dept d on r.dept_id = d.dept_id
         left join sys_user u on rr.user_id = u.user_id
@@ -49,6 +50,10 @@
         <if test="userId != null ">and rr.user_id = #{userId}</if>
         <if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>
         <if test="status != null ">and rr.status = #{status}</if>
+        <if test="params.deptId != null and params.deptId != 0">
+            AND (r.dept_id = #{params.deptId} OR r.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE FIND_IN_SET
+            (#{params.deptId},ancestors) ))
+        </if>
         <if test="params.restaurantName != null and params.restaurantName != ''">
             and r.name like concat('%', #{params.restaurantName}, '%')
         </if>
@@ -61,11 +66,8 @@
         <if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">
             and #{params.endRecoveryDate} >= rr.recovery_date
         </if>
-        <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != '' and params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
-        <!--and rr.recovery_date between #{params.beginRecoveryDate} and #{params.endRecoveryDate}-->
-        <!--</if>-->
         ${params.dataScope}
-        order by rr.recovery_date desc
+        <!--order by rr.recovery_date desc-->
     </select>
 
     <select id="selectRecoveryRecordById" parameterType="Long" resultMap="RecoveryRecordResult">
@@ -77,6 +79,7 @@
         insert into cy_recovery_record
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="restaurantId != null">restaurant_id,</if>
+            <if test="size != null">size,</if>
             <if test="location != null">location,</if>
             <if test="longitude != null">longitude,</if>
             <if test="latitude != null">latitude,</if>
@@ -96,6 +99,7 @@
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="restaurantId != null">#{restaurantId},</if>
+            <if test="size != null">#{size},</if>
             <if test="location != null">#{location},</if>
             <if test="longitude != null">#{longitude},</if>
             <if test="latitude != null">#{latitude},</if>
@@ -119,6 +123,7 @@
         update cy_recovery_record
         <trim prefix="SET" suffixOverrides=",">
             <if test="restaurantId != null">restaurant_id = #{restaurantId},</if>
+            <if test="size != null">size = #{size},</if>
             <if test="location != null">location = #{location},</if>
             <if test="longitude != null">longitude = #{longitude},</if>
             <if test="latitude != null">latitude = #{latitude},</if>
@@ -150,13 +155,8 @@
         </foreach>
     </delete>
 
-    <select id="selectLastRecoveryRecord" parameterType="Long" resultMap="RecoveryRecordResult">
-        <include refid="selectRecoveryRecordVo"/>
-        where restaurant_id = #{restaurantId}
-    </select>
-
     <select id="selectListByRestaurantId" parameterType="String" resultMap="RecoveryRecordResult">
-        SELECT restaurant_id,MAX(recovery_date) recovery_date FROM cy_recovery_record
+        SELECT restaurant_id,size,MAX(recovery_date) recovery_date FROM cy_recovery_record
         WHERE 1=1
         <if test="restaurantIds != null and restaurantIds.length>0 and restaurantIds[0]!=''">
             and restaurant_id IN
@@ -166,49 +166,6 @@
         </if>
         GROUP BY restaurant_id
     </select>
-
-    <!--<select id="sumWeight" parameterType="RecoveryRecord" resultType="double">-->
-    <!--select IFNULL(sum(rr.weight),0)-->
-    <!--from cy_recovery_record rr-->
-    <!--left join cy_restaurant r on rr.restaurant_id = r.restaurant_id-->
-    <!--left join sys_dept d on r.dept_id = d.dept_id-->
-    <!--left join sys_user u on rr.user_id = u.user_id-->
-    <!--where 1=1-->
-    <!--<if test="restaurantId != null ">and rr.restaurant_id = #{restaurantId}</if>-->
-    <!--<if test="userId != null ">and rr.user_id = #{userId}</if>-->
-    <!--<if test="garbageId != null ">and rr.garbage_id = #{garbageId}</if>-->
-    <!--<if test="status != null ">and rr.status = #{status}</if>-->
-    <!--<if test="params.restaurantName != null and params.restaurantName != ''">-->
-    <!--and r.name like concat('%', #{params.restaurantName}, '%')-->
-    <!--</if>-->
-    <!--<if test="params.userName != null and params.userName != ''">-->
-    <!--and u.user_name = #{params.userName}-->
-    <!--</if>-->
-    <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">-->
-    <!--and rr.recovery_date >= #{params.beginRecoveryDate}-->
-    <!--</if>-->
-    <!--<if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
-    <!--and #{params.endRecoveryDate} >= rr.recovery_date-->
-    <!--</if>-->
-    <!--${params.dataScope}-->
-    <!--</select>-->
-
-    <!--<select id="getDailyData" resultType="java.util.HashMap">-->
-    <!--SELECT COUNT(1) count,DATE_FORMAT(recovery_date,'%Y-%m-%d') recoveryDate-->
-    <!--FROM cy_recovery_record rr-->
-    <!--left join cy_restaurant r on rr.restaurant_id = r.restaurant_id-->
-    <!--left join sys_dept d on r.dept_id = d.dept_id-->
-    <!--left join sys_user u on rr.user_id = u.user_id-->
-    <!--where 1=1-->
-    <!--<if test="params.beginRecoveryDate != null and params.beginRecoveryDate != ''">-->
-    <!--and rr.recovery_date >= #{params.beginRecoveryDate}-->
-    <!--</if>-->
-    <!--<if test="params.endRecoveryDate != null and params.endRecoveryDate != ''">-->
-    <!--and #{params.endRecoveryDate} >= rr.recovery_date-->
-    <!--</if>-->
-    <!--${params.dataScope}-->
-    <!--GROUP BY DATE_FORMAT(rr.recovery_date,'%Y-%m-%d')-->
-    <!--</select>-->
 
     <select id="sumWeight" resultType="double">
         SELECT IFNULL(sum(weight),0) FROM cy_recovery_record
@@ -261,5 +218,10 @@
             </foreach>
         </if>
         ORDER BY recovery_date DESC LIMIT 0,#{count}
+    </select>
+
+    <select id="selectLastRecoveryRecord" parameterType="Long" resultMap="RecoveryRecordResult">
+        <include refid="selectRecoveryRecordVo"/>
+        where restaurant_id = #{restaurantId}
     </select>
 </mapper>

@@ -5,6 +5,7 @@ import com.ruoyi.catering.domain.RecoveryRecord;
 import com.ruoyi.catering.service.IFeedbackService;
 import com.ruoyi.common.core.domain.AjaxResult;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/feedback")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@Api(value = "接口对接", tags = {"接口对接"})
+@Api(value = "意见反馈接口")
 public class FeedbackApiController {
     @Autowired
     private IFeedbackService feedbackService;
 
+    @ApiOperation("意见反馈上报")
     @PostMapping(value = "save")
     public AjaxResult save(Feedback feedback) {
-//        feedback.setCreateBy(feedback.getUserId().toString());
         int result = feedbackService.insertFeedback(feedback);
         if (result <= 0) {
             return AjaxResult.error("上报失败");

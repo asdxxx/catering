@@ -87,6 +87,8 @@ public class RecoveryRecord extends BaseEntity {
 //    @Excel(name = "状态", readConverterExp = "1=上报")
     private Integer status;
 
+    private Integer size;
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -191,6 +193,14 @@ public class RecoveryRecord extends BaseEntity {
         return status;
     }
 
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
@@ -212,6 +222,7 @@ public class RecoveryRecord extends BaseEntity {
                 .append("updateBy", getUpdateBy())
                 .append("updateTime", getUpdateTime())
                 .append("remark", getRemark())
+                .append("size", getSize())
                 .toString();
     }
 }

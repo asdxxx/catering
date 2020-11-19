@@ -10,11 +10,10 @@ import com.ruoyi.catering.service.ICheckRecordService;
 import com.ruoyi.catering.service.IRecoveryRecordService;
 import com.ruoyi.catering.utils.BaseUtil;
 import com.ruoyi.catering.utils.TreeUtil;
-import com.ruoyi.catering.vo.IndexQueryData;
+import com.ruoyi.catering.data.IndexQueryData;
 import com.ruoyi.catering.vo.RecoveryRecordVo;
 import com.ruoyi.common.annotation.DataScope;
 import com.ruoyi.common.core.controller.BaseController;
-import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
@@ -27,15 +26,12 @@ import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysUserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import sun.reflect.generics.tree.Tree;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -78,7 +74,6 @@ public class MyIndexController extends BaseController {
             jsonArray.add(jsonObject);
         }
         jsonArray = TreeUtil.listToTree(jsonArray, "value", "pid", "children");
-
         return jsonArray;
     }
 
@@ -153,14 +148,18 @@ public class MyIndexController extends BaseController {
         Date largeDate = cal.getTime();
 
         String ids = "";
-        if ((sysUser.getUserId() != 1 && sysUser.getUserId() != 101) || restaurant.getDeptId()!=null) {
-            for (Restaurant r : restaurantList) {
-                ids += r.getRestaurantId() + ",";
-            }
-            if (ids.length() > 0) {
-                ids = ids.substring(0, ids.length() - 1);
-            }
+//        if (!(sysUser.getUserId() == 1 && restaurant.getDeptId() == null)) {
+        for (Restaurant r : restaurantList) {
+            ids += r.getRestaurantId() + ",";
         }
+        if (ids.length() > 0) {
+            ids = ids.substring(0, ids.length() - 1);
+        }
+//        }
+
+        /* ---------------------------根据商户id集合获取已贴牌数---------------------------*/
+        int brandedCount = restaurantService.brandedCount(ids);
+        jsonObject.put("brandedCount", brandedCount);
 
         /* ---------------------------根据商户id集合分组查询最新的回收记录---------------------------*/
         List<RecoveryRecord> recoveryRecords = recoveryRecordService.selectListByRestaurantId(ids);
@@ -168,9 +167,8 @@ public class MyIndexController extends BaseController {
         int unRecoveredCount = 0;
         List<Long> hasIds = new ArrayList<>();
         for (RecoveryRecord rr : recoveryRecords) {
-            Restaurant r = restaurantService.selectRestaurantById(rr.getRestaurantId());
-            int size = r.getSize();
-            Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+            Integer size = rr.getSize();
+            Date date = size == null ? smallDate : size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
             /* ---------------------------该商户已回收---------------------------*/
             if (rr.getRecoveryDate().after(date)) {
                 hasIds.add(rr.getRestaurantId());
@@ -187,6 +185,7 @@ public class MyIndexController extends BaseController {
             }
         }
 
+        jsonObject.put("totalRecoveredCount", recoveryRecords.size());
         jsonObject.put("recoveredCount", recoveredCount);
         jsonObject.put("unRecoveredCount", unRecoveredCount);
 
@@ -199,14 +198,14 @@ public class MyIndexController extends BaseController {
             if (cr.getStatus() == 1) {
                 unqualifiedCount++;
             }
-            Restaurant r = restaurantService.selectRestaurantById(cr.getRestaurantId());
-            int size = r.getSize();
-            Date date = size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
+            Integer size = cr.getSize();
+            Date date = size == null ? smallDate : size == 2 ? mediumDate : size == 3 ? largeDate : smallDate;
             /* ---------------------------该商户已检查---------------------------*/
             if (cr.getCheckDate().after(date)) {
                 checkedCount++;
             }
         }
+        jsonObject.put("totalCheckedCount", checkRecords.size());
         jsonObject.put("checkedCount", checkedCount);
         jsonObject.put("unqualifiedCount", unqualifiedCount);
 

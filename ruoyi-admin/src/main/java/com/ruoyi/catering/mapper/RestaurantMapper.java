@@ -3,6 +3,7 @@ package com.ruoyi.catering.mapper;
 import java.util.List;
 
 import com.ruoyi.catering.domain.Restaurant;
+import com.ruoyi.catering.data.RestaurantQueryData;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -69,4 +70,20 @@ public interface RestaurantMapper {
     public List<Restaurant> canRecycle(@Param("sqlString") String sqlString, @Param("restaurantId") Long restaurantId, @Param("name") String name);
 
     public int countByDeptId(Long deptId);
+
+    /**
+     * 查询贴牌数量
+     *
+     * @param
+     * @return 贴牌数
+     */
+    public int brandedCount(@Param("restaurantIds") String[] restaurantIds);
+
+    /**
+     * 查询餐馆列表
+     *
+     * @return 餐饮单位信息
+     */
+    public List<Restaurant> selectList(@Param("restaurantQueryData") RestaurantQueryData restaurantQueryData);
+
 }

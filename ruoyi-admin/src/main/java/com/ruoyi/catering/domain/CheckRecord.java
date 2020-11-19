@@ -74,6 +74,8 @@ public class CheckRecord extends BaseEntity {
     @Excel(name = "状态", readConverterExp = "0=合格,1=不合格")
     private Integer status;
 
+    private Integer size;
+
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
@@ -154,6 +156,14 @@ public class CheckRecord extends BaseEntity {
         return status;
     }
 
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
@@ -172,6 +182,7 @@ public class CheckRecord extends BaseEntity {
                 .append("updateBy", getUpdateBy())
                 .append("updateTime", getUpdateTime())
                 .append("remark", getRemark())
+                .append("size", getSize())
                 .toString();
     }
 }

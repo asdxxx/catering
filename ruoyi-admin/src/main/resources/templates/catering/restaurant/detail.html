@@ -7,12 +7,6 @@
 <div class="wrapper wrapper-content animated fadeInRight ibox-content">
     <form class="form-horizontal m" id="form-restaurant-edit" th:object="${restaurant}">
         <input name="restaurantId" th:field="*{restaurantId}" type="hidden">
-        <!--<div class="form-group">-->
-        <!--<label class="col-sm-3 control-label">客户编码：</label>-->
-        <!--<div class="col-sm-8">-->
-        <!--<p class="form-control-static">[[*{restaurantNo}]]</p>-->
-        <!--</div>-->
-        <!--</div>-->
         <div class="form-group">
             <label class="col-sm-3 control-label">店名：</label>
             <div class="col-sm-8">
@@ -74,6 +68,16 @@
                     <input type="radio" th:id="${'size_' + dict.dictCode}" name="size" th:value="${dict.dictValue}"
                            th:field="*{size}" disabled>
                     <label th:for="${'size_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">性质：</label>
+            <div class="col-sm-8">
+                <div class="radio-box" th:each="dict : ${@dict.getType('sys_restaurant_nature')}">
+                    <input type="radio" th:id="${'nature_' + dict.dictCode}" name="nature" th:value="${dict.dictValue}"
+                           th:field="*{nature}" disabled>
+                    <label th:for="${'nature_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>
                 </div>
             </div>
         </div>

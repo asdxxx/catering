@@ -13,6 +13,7 @@ import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysUserService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/msgNotice")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@Api(value = "接口对接", tags = {"接口对接"})
+@Api(value = "消息通知接口")
 public class MsgNoticeApiController extends BaseController {
     @Autowired
     private IMsgNoticeService msgNoticeService;
@@ -47,6 +48,7 @@ public class MsgNoticeApiController extends BaseController {
     @Autowired
     private IRestaurantService restaurantService;
 
+    @ApiOperation("获取用户未读消息通知")
     @GetMapping(value = "/badgeNumber")
     public AjaxResult badgeNumber(Long userId) {
         MsgNotice msgNotice = new MsgNotice();
@@ -56,6 +58,7 @@ public class MsgNoticeApiController extends BaseController {
         return AjaxResult.success("获取成功", msgNotices.size());
     }
 
+    @ApiOperation("获取用户消息通知")
     @GetMapping(value = "/getListByUserId")
     public AjaxResult getListByUserId(Long userId) {
         MsgNotice msgNotice = new MsgNotice();
@@ -64,6 +67,7 @@ public class MsgNoticeApiController extends BaseController {
         return AjaxResult.success(msgNotices);
     }
 
+    @ApiOperation("用户已读操作")
     @PostMapping(value = "read")
     public AjaxResult read(Long noticeId) {
         MsgNotice msgNotice = msgNoticeService.selectMsgNoticeById(noticeId);
@@ -75,9 +79,9 @@ public class MsgNoticeApiController extends BaseController {
         return toAjax(result);
     }
 
+    @ApiOperation("提醒回收")
     @PostMapping(value = "remind")
     public AjaxResult remind(Long userId, Long restaurantId) {
-//        String content = configService.selectConfigByKey("catering.msgNotice.template");
         SysConfig config = new SysConfig();
         config.setConfigKey("catering.msgNotice.template");
         List<SysConfig> sysConfigs = configService.selectConfigList(config);
